@@ -13,17 +13,16 @@ class UsersFilters {
                 }
             }
         }
-        validateWithUser(controller: 'users', action: 'uploadPhoto') {
+        validateWithUser(controller: 'users', action: 'uploadPhoto|update') {
             before = {
                 def id = params.id
-                def user = User.find { it.id.equals(id) }
-                return user && user?.pictures < User.MAX_PICTURES
+                return User.exists(id)
             }
         }
         validatePicture(controller: 'users', action: 'picture') {
             before {
                 def id = params.id
-                return !!Picture.find { it.id.equals(id) }
+                return !!Picture.exists(id)
             }
         }
     }

@@ -5,7 +5,6 @@ class User {
     public static final int MAX_PICTURES = 4;
 
     static constraints = {
-        id nullable: false, unique: true
         name nullable: false
         level nullable: false
         deviceToken nullable: false, unique: true
@@ -13,15 +12,16 @@ class User {
         unreadMessages min: 0, nullable: false
     }
 
-    def id
     def name
     def description
-    def residence
+    String placeName
+    String placeId
     def deviceToken
     List wantToVisit
     UserLevel level
     List<Picture> pictures = []
     Date lastPayment
-    Picture defaultPicture
+    Date lastActive
+    String defaultPicturePath
     int unreadMessages
 }
