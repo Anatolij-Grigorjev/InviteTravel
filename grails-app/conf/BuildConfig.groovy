@@ -60,6 +60,7 @@ grails.project.dependency.resolution = {
         // runtime 'mysql:mysql-connector-java:5.1.29'
         // runtime 'org.postgresql:postgresql:9.3-1101-jdbc41'
         compile 'com.relayrides:pushy:0.4.3'
+        compile 'com.restfb:restfb:1.9.0'
         test "org.grails:grails-datastore-test-support:1.0.2-grails-2.4"
     }
 

@@ -3,10 +3,9 @@ package lt.mediapark.invitetravel
 class Picture {
 
     static constraints = {
-        path nullable: false, unique: true
+        data nullable: false
     }
 
-    def path
     def mimeType
     byte[] data
 }

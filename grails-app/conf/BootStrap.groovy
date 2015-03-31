@@ -60,7 +60,7 @@ class BootStrap {
 
             //classes with device token saved in them can curry the apns closure
             if (klass.getDeclaredField('deviceToken')) {
-                klass.metaClass.registerToken = { token ->
+                klass.metaClass.registerDeviceToken = { token ->
                     klass.metaClass.pushNotification = sendNotification.curry(token)
                 }
             }

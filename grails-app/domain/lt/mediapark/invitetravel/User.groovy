@@ -8,20 +8,24 @@ class User {
         name nullable: false
         level nullable: false
         deviceToken nullable: false, unique: true
-        lastPayment nullable: false
+        userIdFb nullable: false, unique: true
+        userIdVk nullable: false, unique: true
         unreadMessages min: 0, nullable: false
     }
+
 
     def name
     def description
     String placeName
     String placeId
     def deviceToken
+    def userIdFb
+    def userIdVk
     List wantToVisit
     UserLevel level
     List<Picture> pictures = []
     Date lastPayment
     Date lastActive
-    String defaultPicturePath
+    def defaultPictureId
     int unreadMessages
 }

@@ -19,14 +19,18 @@ class UsersController {
 
         request.JSON.with { key, value ->
             if (user.class.getField(key)) {
-                user.${key} = value
+                user."${key}" = value
             }
         }
 
         if (user.save(true)) {
-            render ['message' : 'OK'] as JSON
+            render {
+                ['message' : 'OK']
+            } as JSON
         } else {
-            render ['message' : "Update failed for user ${params.id}!"]
+            render {
+                ['message' : "Update failed for user ${params.id}!"]
+            } as JSON
         }
 
     }
@@ -54,7 +58,6 @@ class UsersController {
             Picture pic = new Picture(["data" : picture.bytes, "mimeType" : picture.contentType])
             pic = pic.save()
             if (pic) {
-                pic.path = "/users/picture/${pic.id}"
                 pic = pic.save(true)
                 render {
                     ['message': "Picture at path: ${pic?.path}"]
@@ -87,13 +90,15 @@ class UsersController {
 
     def list = {
         render {
-            User.all.collect { user ->
+            def users = User.all.collect { user ->
                 ['id' : user.id,
                 'hasMessages' : !!user.unreadMessages,
                 'level' : user.level,
-                'thumbnail' : user.defaultPicturePath
+                'thumbnail' : user.defaultPicturePath,
+                'lastActive' : user.lastActive.time
                 ]
-            }
+            }.sort { -1 * it.lastActive.time }//sort in reverse order
+
         } as JSON
     }
 
