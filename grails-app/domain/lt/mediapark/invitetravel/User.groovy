@@ -8,8 +8,8 @@ class User {
         name nullable: false
         level nullable: false
         deviceToken nullable: false, unique: true
-        userIdFb nullable: false, unique: true
-        userIdVk nullable: false, unique: true
+        userIdFb unique: true
+        userIdVk unique: true
         unreadMessages min: 0, nullable: false
     }
 

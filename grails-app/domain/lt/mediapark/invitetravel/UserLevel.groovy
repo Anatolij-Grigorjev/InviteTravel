@@ -5,7 +5,9 @@ package lt.mediapark.invitetravel
  */
 enum UserLevel {
 
-    CAN_PAY_FOR_TWO(3), CAN_PAY_FOR_ONE(2), CANT_PAY(1);
+    CAN_PAY_FOR_TWO(2), CAN_PAY_FOR_ONE(1), CANT_PAY(0);
+
+    private int rank
 
     private UserLevel(int rank) {
         this.rank = rank
@@ -13,6 +15,10 @@ enum UserLevel {
 
     public boolean canTalkTo(UserLevel level) {
         this.rank >= level?.rank
+    }
+
+    public static UserLevel findForLevel(int level) {
+        UserLevel.find { it.rank == level }
     }
 
 }
