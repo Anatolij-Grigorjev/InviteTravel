@@ -9,6 +9,10 @@ enum UserLevel {
 
     private int rank
 
+    public int getRank() {
+        rank
+    }
+
     private UserLevel(int rank) {
         this.rank = rank
     }

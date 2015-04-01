@@ -17,12 +17,11 @@ class User {
 
     def name
     def description
-    String placeName
-    String placeId
+    Place residence
     def deviceToken
     def userIdFb
     def userIdVk
-    List wantToVisit
+    List<Place> wantToVisit
     UserLevel level = UserLevel.CANT_PAY
     List<Picture> pictures = []
     Date lastPayment

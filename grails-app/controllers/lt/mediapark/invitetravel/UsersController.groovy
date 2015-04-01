@@ -1,5 +1,6 @@
 package lt.mediapark.invitetravel
 
+import com.google.gson.Gson
 import org.springframework.web.multipart.commons.CommonsMultipartFile
 import grails.converters.JSON
 
@@ -16,7 +17,17 @@ class UsersController {
     def usersService
 
     def index = {
-
+        render usersService.getUser(params.id).with {
+            [
+                'id' : id,
+                'name' : name,
+                'description' : description,
+                'residence' : residence,
+                'level' : level.rank,
+                'wantToVisit' : wantToVisit,
+                'pictures' : [defaultPictureId] << pictures?.collect { it.id } as Set
+            ]
+        } as GSON
     }
 
     def update = {
@@ -31,11 +42,11 @@ class UsersController {
         if (user.save(true)) {
             render {
                 ['message' : 'OK']
-            } as JSON
+            } as GSON
         } else {
             render {
                 ['message' : "Update failed for user ${params.id}!"]
-            } as JSON
+            } as GSON
         }
 
     }
@@ -55,13 +66,21 @@ class UsersController {
         }
         userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
         userAttrs << rightLogin(request.JSON)
-        render userAttrs as JSON
+        render userAttrs as GSON
     }
 
     def list = {
         render {
-            def users = usersService.usersList
-        } as JSON
+            usersService.usersList.collect { user ->
+                [
+                 'id'       : user.id,
+                 'hasMessages': !!user.unreadMessages,
+                 'level'    : user.level,
+                 'thumbnail': user.defaultPictureId,
+                 'lastActive' : user.lastActive.time
+                ]
+            }
+        } as GSON
     }
 
 }

@@ -16,17 +16,14 @@ class UsersService {
     }
 
     def getUsersList() {
-        User.findAllWhere([isValid: true], ['sort' : 'lastActive', 'order' : 'desc']).collect { user ->
-            ['id' : user.id,
-             'hasMessages' : !!user.unreadMessages,
-             'level' : user.level,
-             'thumbnail' : user.defaultPictureId,
-             'lastActive' : user.lastActive.time
-            ]
-        }
+        User.findAllWhere([isValid: true], ['sort' : 'lastActive', 'order' : 'desc'])
     }
 
     def userReady(def userId) {
         User.exists(userId) && loggedInUsers[userId]
+    }
+
+    def getUser(def userId) {
+        loggedInUsers[userId]?: User.findWhere(isValid: true, id: userId)
     }
 }
