@@ -11,6 +11,7 @@ class User {
         userIdFb unique: true
         userIdVk unique: true
         unreadMessages min: 0, nullable: false
+        isValid nullable: false
     }
 
 
@@ -22,10 +23,11 @@ class User {
     def userIdFb
     def userIdVk
     List wantToVisit
-    UserLevel level
+    UserLevel level = UserLevel.CANT_PAY
     List<Picture> pictures = []
     Date lastPayment
     Date lastActive
+    def isValid = true
     def defaultPictureId
-    int unreadMessages
+    int unreadMessages = 0
 }

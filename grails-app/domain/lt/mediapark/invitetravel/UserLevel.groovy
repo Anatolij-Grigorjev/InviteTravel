@@ -18,7 +18,7 @@ enum UserLevel {
     }
 
     public static UserLevel findForLevel(int level) {
-        UserLevel.find { it.rank == level }
+        UserLevel.values().find { it.rank == level }
     }
 
 }

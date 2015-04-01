@@ -5,14 +5,16 @@ import lt.mediapark.invitetravel.User
 
 class UsersFilters {
 
+    def usersService
+
     def filters = {
-        validateWithUser(controller: 'users', action: 'uploadPhoto|update') {
+        validateWithUser(controller: 'users', action: 'login', invert: true) {
             before = {
-                def id = params.id
-                return User.exists(id)
+                def userId = params.requestor
+                return usersService.userReady(userId)
             }
         }
-        validatePicture(controller: 'users', action: 'picture') {
+        validatePicture(controller: 'pictures', action: 'index|delete') {
             before {
                 def id = params.id
                 return !!Picture.exists(id)

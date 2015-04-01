@@ -6,12 +6,14 @@ import grails.converters.JSON
 class UsersController {
 
     static allowedMethods = [
-            login: 'POST',
-            list: 'GET',
-            update: 'POST',
-            index: 'GET'
+        login: 'POST',
+        list: 'GET',
+        update: 'POST',
+        index: 'GET'
     ]
 
+
+    def usersService
 
     def index = {
 
@@ -42,28 +44,23 @@ class UsersController {
 
         def loginType = LoginType.valueOf(request.JSON.source)
         def userAttrs = new LinkedHashMap()
-        userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
+        def rightLogin = null;
         switch (loginType) {
             case LoginType.VK:
-
+                rightLogin = usersService.&loginVK
                 break
             case LoginType.FB:
-
+                rightLogin = usersService.&loginFB
                 break
         }
+        userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
+        userAttrs << rightLogin(request.JSON)
+        render userAttrs as JSON
     }
 
     def list = {
         render {
-            def users = User.all.collect { user ->
-                ['id' : user.id,
-                'hasMessages' : !!user.unreadMessages,
-                'level' : user.level,
-                'thumbnail' : user.defaultPictureId,
-                'lastActive' : user.lastActive.time
-                ]
-            }.sort { -1 * it.lastActive.time }//sort in reverse order
-
+            def users = usersService.usersList
         } as JSON
     }
 
