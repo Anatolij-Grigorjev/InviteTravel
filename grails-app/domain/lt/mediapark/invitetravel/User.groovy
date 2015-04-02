@@ -10,9 +10,10 @@ class User {
         deviceToken nullable: false, unique: true
         userIdFb unique: true
         userIdVk unique: true
-        unreadMessages min: 0, nullable: false
         isValid nullable: false
     }
+
+    static transients = ['listedIds']
 
 
     def name
@@ -24,9 +25,10 @@ class User {
     List<Place> wantToVisit
     UserLevel level = UserLevel.CANT_PAY
     List<Picture> pictures = []
+    List<ChatMessage> messagesForMe = []
     Date lastPayment
     Date lastActive
     def isValid = true
     def defaultPictureId
-    int unreadMessages = 0
+    List listedIds
 }

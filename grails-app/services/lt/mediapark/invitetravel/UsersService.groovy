@@ -15,8 +15,39 @@ class UsersService {
 
     }
 
-    def getUsersList() {
-        User.findAllWhere([isValid: true], ['sort' : 'lastActive', 'order' : 'desc'])
+    def updateUser(def userId, def jsonMap) {
+        def user = User.get(userId)
+
+        user.save()
+    }
+
+    def getUsersList(def userId, def amount, def jsonMap) {
+        User.createCriteria().list([sort : 'lastActive', order : 'desc', max: amount]) {
+            if (jsonMap?.searchType == 0) {
+                residence {
+                    if (jsonMap?.query) {
+                        like('description', "%${jsonMap.query}%")
+                    }
+                    if (jsonMap?.place) {
+                        like('placeId', "${jsonMap.place?.placeId}")
+                        like('description', "%${jsonMap.place?.description}%")
+                    }
+                }
+            }
+            if (jsonMap?.searchType == 1) {
+                wantToVisit {
+                    if (jsonMap?.query) {
+                        like('description', "%${jsonMap.query}%")
+                    }
+                    if (jsonMap?.place) {
+                        like('placeId', "${jsonMap.place?.placeId}")
+                        like('description', "%${jsonMap.place?.description}%")
+                    }
+                }
+            }
+            eq(isValid, true)
+            notIn('id') { loggedInUsers[userId]?.listedIds }
+        }
     }
 
     def userReady(def userId) {

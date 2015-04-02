@@ -37,6 +37,14 @@ grails.mime.types = [ // the first one is the default format
 // Legacy setting for codec used to encode data with ${}
 grails.views.default.codec = "html"
 
+// make all properties nullable by default
+grails.gorm.default.constraints = {
+    '*'(nullable: true)
+}
+
+// turn off silent GORM errors
+grails.gorm.failOnError = true
+
 // The default scope for controllers. May be prototype, session or singleton.
 // If unspecified, controllers are prototype scoped.
 grails.controllers.defaultScope = 'singleton'

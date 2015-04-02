@@ -2,7 +2,8 @@ package lt.mediapark.invitetravel
 
 import com.google.gson.Gson
 import org.springframework.web.multipart.commons.CommonsMultipartFile
-import grails.converters.JSON
+
+import javax.xml.ws.Response
 
 class UsersController {
 
@@ -27,28 +28,18 @@ class UsersController {
                 'wantToVisit' : wantToVisit,
                 'pictures' : [defaultPictureId] << pictures?.collect { it.id } as Set
             ]
-        } as GSON
+        } as Gson
     }
 
     def update = {
-        def user = User.get(params.id)
-
-        request.JSON.with { key, value ->
-            if (user.class.getField(key)) {
-                user."${key}" = value
-            }
-        }
-
-        if (user.save(true)) {
+        try {
+            usersService.updateUser(params.requestor, request.JSON)
+            render(status: 200)
+        } catch (Exception e) {
             render {
-                ['message' : 'OK']
-            } as GSON
-        } else {
-            render {
-                ['message' : "Update failed for user ${params.id}!"]
-            } as GSON
+                ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]
+            } as Gson
         }
-
     }
 
     def login = {
@@ -66,12 +57,15 @@ class UsersController {
         }
         userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
         userAttrs << rightLogin(request.JSON)
-        render userAttrs as GSON
+        render userAttrs as Gson
     }
 
     def list = {
         render {
-            usersService.usersList.collect { user ->
+            // in this context the id parameter is used to indicate return list size
+            //this is more convenient than defining a whole new url mapping, since old
+            //one fits just fine
+            usersService.getUsersList(params.requestor, params.id, request.JSON).collect { user ->
                 [
                  'id'       : user.id,
                  'hasMessages': !!user.unreadMessages,
@@ -80,7 +74,7 @@ class UsersController {
                  'lastActive' : user.lastActive.time
                 ]
             }
-        } as GSON
+        } as Gson
     }
 
 }
