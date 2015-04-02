@@ -19,7 +19,7 @@ class UsersService {
 
     private void finishLogin(def user) {
         user.lastActive = new Date()
-        loggedInUsers << [user.id : user]
+        loggedInUsers << ["${user.id}" : user]
     }
 
     def updateUser(def userId, def jsonMap) {
