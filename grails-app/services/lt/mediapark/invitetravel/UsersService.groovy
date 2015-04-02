@@ -8,11 +8,18 @@ class UsersService {
     def loggedInUsers = [:]
 
     def loginVK(def jsonMap) {
-
+        //get VK stuff
+        finishLogin(user)
     }
 
     def loginFB(def jsonMap) {
+        // get FB stuff
+        finishLogin(user)
+    }
 
+    private void finishLogin(def user) {
+        user.lastActive = new Date()
+        loggedInUsers << [user.id : user]
     }
 
     def updateUser(def userId, def jsonMap) {
@@ -22,7 +29,10 @@ class UsersService {
     }
 
     def getUsersList(def userId, def amount, def jsonMap) {
-        User.createCriteria().list([sort : 'lastActive', order : 'desc', max: amount]) {
+        if (jsonMap?.fresh) {
+            loggedInUsers[userId]?.listedIds?.clear()
+        }
+        User.createCriteria().list {
             if (jsonMap?.searchType == 0) {
                 residence {
                     if (jsonMap?.query) {
@@ -45,13 +55,17 @@ class UsersService {
                     }
                 }
             }
+            order('lastActive', 'desc')
+            maxResults(amount)
             eq(isValid, true)
             notIn('id') { loggedInUsers[userId]?.listedIds }
         }
     }
 
     def userReady(def userId) {
-        User.exists(userId) && loggedInUsers[userId]
+        def user = loggedInUsers[userId]
+        user?.lastActive = new Date()
+        User.exists(userId) && user
     }
 
     def getUser(def userId) {

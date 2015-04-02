@@ -30,5 +30,5 @@ class User {
     Date lastActive
     def isValid = true
     def defaultPictureId
-    List listedIds
+    List listedIds = []
 }
