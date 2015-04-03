@@ -11,9 +11,9 @@ class UsersController {
         login: 'POST',
         list: 'GET',
         update: 'POST',
-        index: 'GET'
+        index: 'GET',
+        logout: 'GET'
     ]
-
 
     def usersService
 
@@ -40,6 +40,11 @@ class UsersController {
                 ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]
             } as Gson
         }
+    }
+
+    def logout = {
+        usersService.logout(params.requestor)
+        render(status: 200)
     }
 
     def login = {

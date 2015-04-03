@@ -25,7 +25,19 @@ class UsersService {
     def updateUser(def userId, def jsonMap) {
         def user = User.get(userId)
 
+        jsonMap.keys.each { it ->
+            if (!it.eqauls('id') && !it.equals('name')) {
+                if (user.$it) {
+                    user.$it = jsonMap.$it
+                }
+            }
+        }
+
         user.save()
+    }
+
+    def logout(def userId) {
+
     }
 
     def getUsersList(def userId, def amount, def jsonMap) {

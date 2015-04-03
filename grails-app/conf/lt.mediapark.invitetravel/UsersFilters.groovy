@@ -20,11 +20,6 @@ class UsersFilters {
                 return !!Picture.exists(id)
             }
         }
-        onlyChangeYourself(controller: 'users', action: 'update') {
-            before {
-                return params.requestor == params.id
-            }
-        }
     }
 
 
