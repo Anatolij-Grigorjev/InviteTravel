@@ -6,6 +6,8 @@ import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import com.relayrides.pushy.apns.util.SSLContextUtil
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
+import com.restfb.DefaultFacebookClient
+import com.restfb.FacebookClient
 
 import javax.net.ssl.SSLHandshakeException
 
@@ -37,37 +39,42 @@ class BootStrap {
                 grailsApplication.apns.manager.name);
 
         grailsApplication.getAllArtefacts().each { klass ->
-            klass.metaClass.static.apnsManager = manager;
-            klass.metaClass.static.viaApns = { Closure actions ->
-                actions(manager);
-            }
-
-            klass.metaClass.static.sendNotification = { token, builder ->
-
-                def tokenBytes = TokenUtil.tokenStringToByteArray(token)
-
-                ApnsPayloadBuilder payloadBuilder = new ApnsPayloadBuilder()
-                builder(payloadBuilder)
-
-                def payload = payloadBuilder.buildWithDefaultMaximumLength()
-
-                viaApns { apns ->
-                    def q = apns.getQueue()
-                    q.put(new SimpleApnsPushNotification(token, payload))
-                }
-
-            }
-
-            //classes with device token saved in them can curry the apns closure
-            if (klass.getDeclaredField('deviceToken')) {
-                klass.metaClass.registerDeviceToken = { token ->
-                    klass.metaClass.pushNotification = sendNotification.curry(token)
-                }
-            }
+            addApnsMethods(klass)
 
         }
         registerListeners()
         pushManager.start()
+    }
+
+    def addApnsMethods(def klass) {
+        klass.metaClass.static.apnsManager = pushManager;
+        klass.metaClass.static.viaApns = { Closure actions ->
+            actions(apnsManager);
+        }
+
+        klass.metaClass.static.sendNotification = { token, builder ->
+
+            def tokenBytes = TokenUtil.tokenStringToByteArray(token)
+
+            ApnsPayloadBuilder payloadBuilder = new ApnsPayloadBuilder()
+            builder(payloadBuilder)
+
+            def payload = payloadBuilder.buildWithDefaultMaximumLength()
+
+            viaApns { apns ->
+                def q = apns.getQueue()
+                q.put(new SimpleApnsPushNotification(token, payload))
+            }
+
+        }
+
+        //classes with device token saved in them can curry the apns closure
+        if (klass.getDeclaredField('deviceToken')) {
+            klass.metaClass.registerDeviceToken = { token ->
+                klass.metaClass.pushNotification = sendNotification.curry(token)
+            }
+        }
+
     }
 
 

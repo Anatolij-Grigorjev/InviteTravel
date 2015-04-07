@@ -5,7 +5,7 @@ import grails.transaction.Transactional
 @Transactional
 class UsersService {
 
-    def loggedInUsers = [:]
+    Map<?, User> loggedInUsers = [:]
 
     def loginVK(def jsonMap) {
         //get VK stuff
@@ -37,6 +37,7 @@ class UsersService {
     }
 
     def logout(def userId) {
+        def user = loggedInUsers.remove(userId)
 
     }
 

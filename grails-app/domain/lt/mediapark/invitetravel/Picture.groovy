@@ -6,6 +6,6 @@ class Picture {
         data nullable: false
     }
 
-    def mimeType
+    String mimeType
     byte[] data
 }
