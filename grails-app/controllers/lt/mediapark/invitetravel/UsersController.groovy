@@ -1,7 +1,7 @@
 package lt.mediapark.invitetravel
 
-import com.google.gson.Gson
 import org.springframework.web.multipart.commons.CommonsMultipartFile
+import grails.converters.JSON
 
 import javax.xml.ws.Response
 
@@ -29,7 +29,7 @@ class UsersController {
             userMap['wantToVisit'] = user?.wantToVisit
             userMap['pictures'  ] = [user?.defaultPictureId] << user?.pictures?.collect { it.id } as Set
         } : ['status': 404]
-        render target as Gson
+        render target as JSON
     }
 
     def update = {
@@ -37,9 +37,8 @@ class UsersController {
             usersService.updateUser(params.requestor, request.JSON)
             render(status: 200)
         } catch (Exception e) {
-            render {
-                ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]
-            } as Gson
+            def message = ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]
+            render message as JSON
         }
     }
 
@@ -64,26 +63,24 @@ class UsersController {
         userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
         userAttrs << request.JSON
         def userInfo = rightLogin(userAttrs)
-        render(status: userInfo.fresh? 201 : 200) {
-            ['userId' : userInfo.id]
-        } as Gson
+        def result = ['userId' : userInfo.id]
+        render([status: userInfo.fresh? 201 : 200], result) as JSON
     }
 
     def list = {
-        render {
-            // in this context the id parameter is used to indicate return list size
-            //this is more convenient than defining a whole new url mapping, since old
-            //one fits just fine
-            usersService.getUsersList(params.requestor, params.id, request.JSON).collect { user ->
-                [
-                 'id'       : user.id,
-                 'hasMessages': !!user.unreadMessages,
-                 'level'    : user.level,
-                 'thumbnail': user.defaultPictureId,
-                 'lastActive' : user.lastActive.time
-                ]
-            }
-        } as Gson
+        // in this context the id parameter is used to indicate return list size
+        //this is more convenient than defining a whole new url mapping, since old
+        //one fits just fine
+        def usersList = usersService.getUsersList(params.requestor, params.id, request.JSON).collect { User user ->
+            [
+             'id'       : user.id,
+             'hasMessages': user.messagesToMe.any {!it.read},
+             'level'    : user.level,
+             'thumbnail': user.defaultPictureId,
+             'lastActive' : user.lastActive.time
+            ]
+        }
+       render usersList as JSON
     }
 
 }

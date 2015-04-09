@@ -9,6 +9,11 @@ class UrlMappings {
             }
         }
 
+        "/debug/login" {
+            controller = 'debug'
+            action = 'login'
+        }
+
         "/$controller/$id?"{
             constraints {
                 id matches: /\d+/

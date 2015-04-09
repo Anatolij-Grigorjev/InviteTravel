@@ -8,17 +8,22 @@ class UsersFilters {
     def usersService
 
     def filters = {
-        allowDebugging(controller: '(users|debug)', action: 'login', uri: '/', invert: true) {
-            before =  {
-                def userId = params.requestor
-                boolean userThere = usersService.userReady(userId)
-                userThere || redirect(uri: '500')
-            }
-        }
+//        allowLogin(controller: 'users', action: 'login', invert: true) {
+//            before =  {
+//                def userId = params.requestor
+//                boolean userThere = usersService.userReady(userId)
+//                userThere || redirect(uri: '500')
+//            }
+//        }
         validatePicture(controller: 'pictures', action: '(index|delete)') {
             before = {
                 def id = params.id
                 return !!Picture.exists(id)
+            }
+        }
+        allowDebugging(controller: 'debug', action: '*') {
+            before = {
+                return true;
             }
         }
     }

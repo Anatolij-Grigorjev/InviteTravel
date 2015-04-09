@@ -72,6 +72,7 @@ grails.project.dependency.resolution = {
         // plugins for the compile step
         compile ":scaffolding:2.1.2"
         compile ':cache:1.1.8'
+        compile ':rest:0.8'
         compile ":asset-pipeline:1.9.9"
         compile ':gson:1.1.4' //for JSON (un)marshalling
 

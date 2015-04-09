@@ -110,12 +110,14 @@ environments {
         grails.apns.p12.password = 'callmeishmel'
         grails.apns.manager.name = 'DEV-PUSHY-MANAGER'
         grails.restfb.app.secret = 'secretsecret'
+        grails.google.places.api.key = 'keyley'
     }
     production {
         grails.apns.p12.path = 'keystore.p12'
         grails.apns.p12.password = 'callmeishmel'
         grails.apns.manager.name = 'Prod-Pushy-Manager'
         grails.restfb.app.secret = 'secretsecret'
+        grails.google.places.api.key = 'keyley'
     }
 }
 

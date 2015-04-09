@@ -20,9 +20,8 @@ class PicturesController {
 
             response.outputStream << new ByteArrayInputStream(picture.data)
         } else {
-            render {
-                ['message': 'Picture is gone!']
-            } as JSON
+            def message = ['message': 'Picture is gone!']
+            render ([status: 404], message) as JSON
         }
     }
 
@@ -41,18 +40,15 @@ class PicturesController {
             pic = pic.save()
             if (pic) {
                 pic = pic.save(true)
-                render {
-                    ['pictureId': "${pic?.id}"]
-                } as JSON
+                def message = ['pictureId': "${pic?.id}"]
+                render message as JSON
             } else {
-                render {
-                    ['message' : "Picture ${picture} not saved!"]
-                } as JSON
+                def message = ['message' : "Picture ${picture} not saved!"]
+                render message as JSON
             }
         } else {
-            render {
-                ['message':"No known user has id ${params.id}!"]
-            } as JSON
+            def message = ['message':"No known user has id ${params.id}!"]
+            render message as JSON
         }
     }
 }

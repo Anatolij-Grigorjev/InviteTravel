@@ -1,6 +1,10 @@
 package lt.mediapark.invitetravel
 
+import com.restfb.DefaultFacebookClient
+import com.restfb.FacebookClient
 import grails.transaction.Transactional
+import com.restfb.types.User as FbUser
+import grails.util.Holders
 
 @Transactional
 class UsersService {
@@ -13,8 +17,29 @@ class UsersService {
     }
 
     def loginFB(def jsonMap) {
-        // get FB stuff
+        FbUser fbUser = fetchMeFb(jsonMap)
+        def user = User.findWhere('userIdFb' : fbUser?.id) ?: new User(userIdFb: Long.parse(fbUser?.id))
+        user.userValid = true
+        if (!user.id) {
+            user.level = jsonMap.level
+        }
+        user.name = fbUser?.name
+        user.residence = getPlace(fbUser?.location?.name)
         finishLogin(user)
+    }
+
+    private Place getPlace(String name) {
+        if (name) {
+            "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=" +
+                    "${PLACES_API_KEY}&types=${'regions'}&name=${name}"
+        } else {
+            return null;
+        }
+    }
+
+    private FbUser fetchMeFb(Map jsonMap) {
+        FacebookClient client = new DefaultFacebookClient(accessToken: jsonMap.accessToken, APP_SECRET)
+        client.fetchObject('me', FbUser.class)
     }
 
     private Map finishLogin(User user) {

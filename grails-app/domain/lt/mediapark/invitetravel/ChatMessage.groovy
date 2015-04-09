@@ -8,5 +8,6 @@ class ChatMessage {
 
     User from
     User to
+    Boolean read = false
     String text
 }

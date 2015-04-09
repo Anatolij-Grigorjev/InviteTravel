@@ -8,8 +8,13 @@ import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
 import com.restfb.DefaultFacebookClient
 import com.restfb.FacebookClient
+import groovyx.net.http.HTTPBuilder
+import groovyx.net.http.ContentType
+import groovyx.net.http.Method
+import groovyx.net.http.RESTClient
 
 import javax.net.ssl.SSLHandshakeException
+
 
 class BootStrap {
 
@@ -49,15 +54,25 @@ class BootStrap {
         }
         grailsApplication.getAllArtefacts().each { klass ->
             addApnsMethods(klass)
-            addRestFbMethods(klass)
+            klass.metaClass.APP_SECRET = grails.restfb.app.secret
+            klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
+
+            klass.metaClass.static.viaHttpGet = { String link, Closure responseHandler ->
+
+                def http = new HTTPBuilder(link)
+
+                http.request(Method.GET, ContentType.APPLICATION_JSON) {
+
+                    response.success = { resp, reader ->
+
+                    }
+                }
+
+            }
         }
     }
 
-    def addRestFbMethods(def klass) {
-        if (klass.getDeclaredField('userIdFb')) {
 
-        }
-    }
 
     def addApnsMethods(def klass) {
         klass.metaClass.static.apnsManager = pushManager;
@@ -81,11 +96,16 @@ class BootStrap {
 
         }
 
-        //classes with device token saved in them can curry the apns closure
-        if (klass.getDeclaredField('deviceToken')) {
-            klass.metaClass.registerDeviceToken = { token ->
-                klass.metaClass.pushNotification = sendNotification.curry(token)
+        try {
+
+            //classes with device token saved in them can curry the apns closure
+            if (klass.getDeclaredField('deviceToken')) {
+                klass.metaClass.registerDeviceToken = { token ->
+                    klass.metaClass.pushNotification = sendNotification.curry(token)
+                }
             }
+        } catch (Exception e) {
+            //skip this one, it doesnt declare the token
         }
 
     }
