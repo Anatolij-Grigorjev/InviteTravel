@@ -17,9 +17,15 @@ class UsersService {
         finishLogin(user)
     }
 
-    private void finishLogin(def user) {
+    private Map finishLogin(User user) {
+        def result = [:]
+        result.fresh = !!user.id
         user.lastActive = new Date()
+        user.userValid = true
+        user.save()
+        result.userId = user.id
         loggedInUsers << ["${user.id}" : user]
+        result
     }
 
     def updateUser(def userId, def jsonMap) {
@@ -70,18 +76,18 @@ class UsersService {
             }
             order('lastActive', 'desc')
             maxResults(amount)
-            eq(isValid, true)
+            eq(userValid, true)
             notIn('id') { loggedInUsers[userId]?.listedIds }
         }
     }
 
-    def userReady(def userId) {
+    def boolean userReady(def userId) {
         def user = loggedInUsers[userId]
         user?.lastActive = new Date()
-        User.exists(userId) && user
+        user && User.exists(userId)
     }
 
-    def getUser(def userId) {
-        loggedInUsers[userId]?: User.findWhere(isValid: true, id: userId)
+    def User getUser(def userId) {
+        loggedInUsers[userId]?: User.findWhere(userValid: true, id: Long.parseLong(userId));
     }
 }

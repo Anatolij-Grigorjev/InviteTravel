@@ -11,24 +11,25 @@ class UsersController {
         login: 'POST',
         list: 'GET',
         update: 'POST',
-        index: 'GET',
-        logout: 'GET'
+        logout: 'GET',
+        index: 'GET'
     ]
 
     def usersService
 
     def index = {
-        render usersService.getUser(params.id).with {
-            [
-                'id' : id,
-                'name' : name,
-                'description' : description,
-                'residence' : residence,
-                'level' : level.rank,
-                'wantToVisit' : wantToVisit,
-                'pictures' : [defaultPictureId] << pictures?.collect { it.id } as Set
-            ]
-        } as Gson
+        def user = usersService.getUser(params.id)
+        def target = user? {
+            def userMap = [:]
+            userMap['id'         ] = user?.id
+            userMap['name'       ] = user?.name
+            userMap['description'] = user?.description
+            userMap['residence'  ] = user?.residence
+            userMap['level'      ] = user?.level.rank
+            userMap['wantToVisit'] = user?.wantToVisit
+            userMap['pictures'  ] = [user?.defaultPictureId] << user?.pictures?.collect { it.id } as Set
+        } : ['status': 404]
+        render target as Gson
     }
 
     def update = {
@@ -61,8 +62,11 @@ class UsersController {
                 break
         }
         userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
-        userAttrs << rightLogin(request.JSON)
-        render userAttrs as Gson
+        userAttrs << request.JSON
+        def userInfo = rightLogin(userAttrs)
+        render(status: userInfo.fresh? 201 : 200) {
+            ['userId' : userInfo.id]
+        } as Gson
     }
 
     def list = {

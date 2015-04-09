@@ -7,28 +7,40 @@ class User {
     static constraints = {
         name nullable: false
         level nullable: false
-        deviceToken nullable: false, unique: true
+        deviceToken unique: true
         userIdFb unique: true
         userIdVk unique: true
-        isValid nullable: false
+        userValid nullable: false
     }
+
+    static hasMany = [
+            wantToVisit : Place,
+            pictures : Picture,
+            messagesToMe: ChatMessage,
+            messagesFromMe: ChatMessage
+    ]
+
+    static mappedBy = [
+            messagesToMe: "to",
+            messagesFromMe: "from"
+    ]
 
     static transients = ['listedIds']
 
-
-    def name
-    def description
+    String name
+    String description
     Place residence
-    def deviceToken
-    def userIdFb
-    def userIdVk
+    String deviceToken
+    Long userIdFb
+    Long userIdVk
     List<Place> wantToVisit
     UserLevel level = UserLevel.CANT_PAY
     List<Picture> pictures = []
-    List<ChatMessage> messagesForMe = []
+    List<ChatMessage> messagesToMe = []
+    List<ChatMessage> messagesFromMe = []
     Date lastPayment
     Date lastActive
-    def isValid = true
-    def defaultPictureId
+    Boolean userValid = true
+    Long defaultPictureId
     List listedIds = []
 }

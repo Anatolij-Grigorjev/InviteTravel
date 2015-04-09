@@ -14,10 +14,13 @@ import javax.net.ssl.SSLHandshakeException
 class BootStrap {
 
     def grailsApplication
+    def grails
+
     PushManager pushManager
 
     def init = { servletContext ->
         def apnsEnv = null;
+        grails = grailsApplication.config.grails
         def managerConfig = new PushManagerConfiguration()
         environments {
             development {
@@ -27,23 +30,33 @@ class BootStrap {
                 apnsEnv = ApnsEnvironment.getProductionEnvironment();
             }
         }
-        def sslCtx = SSLContextUtil.createDefaultSSLContext(grailsApplication.apns.p12.path,
-                grailsApplication.apns.p12.password)
-        pushManager = new PushManager<ApnsPushNotification>(
-                apnsEnv,
-                sslCtx,
-                null, //even loop group
-                null, //executor service
-                null, //blocking queue
-                managerConfig,
-                grailsApplication.apns.manager.name);
+        try {
+            def sslCtx = SSLContextUtil.createDefaultSSLContext(grails.apns.p12.path,
+                    grails.apns.p12.password)
+            pushManager = new PushManager<ApnsPushNotification>(
+                    apnsEnv,
+                    sslCtx,
+                    null, //even loop group
+                    null, //executor service
+                    null, //blocking queue
+                    managerConfig,
+                    grails.apns.manager.name);
 
+            registerListeners()
+            pushManager.start()
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
         grailsApplication.getAllArtefacts().each { klass ->
             addApnsMethods(klass)
+            addRestFbMethods(klass)
+        }
+    }
+
+    def addRestFbMethods(def klass) {
+        if (klass.getDeclaredField('userIdFb')) {
 
         }
-        registerListeners()
-        pushManager.start()
     }
 
     def addApnsMethods(def klass) {

@@ -9,9 +9,16 @@ class UrlMappings {
             }
         }
 
+        "/$controller/$id?"{
+            constraints {
+                id matches: /\d+/
+            }
+            action = 'index'
+        }
 
 
-        "/"(view:"/index")
+
+        "/" (view: 'index')
         "500"(view:'/error')
 	}
 }

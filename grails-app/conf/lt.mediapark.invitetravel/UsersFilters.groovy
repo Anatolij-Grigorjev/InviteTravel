@@ -1,4 +1,4 @@
-package invitetravel
+package lt.mediapark.invitetravel
 
 import lt.mediapark.invitetravel.Picture
 import lt.mediapark.invitetravel.User
@@ -8,19 +8,18 @@ class UsersFilters {
     def usersService
 
     def filters = {
-        validateWithUser(controller: 'users', action: 'login', invert: true) {
-            before = {
+        allowDebugging(controller: '(users|debug)', action: 'login', uri: '/', invert: true) {
+            before =  {
                 def userId = params.requestor
-                return usersService.userReady(userId)
+                boolean userThere = usersService.userReady(userId)
+                userThere || redirect(uri: '500')
             }
         }
-        validatePicture(controller: 'pictures', action: 'index|delete') {
-            before {
+        validatePicture(controller: 'pictures', action: '(index|delete)') {
+            before = {
                 def id = params.id
                 return !!Picture.exists(id)
             }
         }
     }
-
-
 }
