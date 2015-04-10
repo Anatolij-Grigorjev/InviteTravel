@@ -8,7 +8,7 @@ class DebugController {
             login: 'POST'
     ]
 
-    def usersService
+    def loginService
 
     def login = {
 
@@ -27,7 +27,7 @@ class DebugController {
 
             user = user.save()
         }
-        usersService.loggedInUsers[user.id] = user
+        loginService.loggedInUsers[user.id] = user
         def result = ['userId' : user.id]
         render result as JSON
     }

@@ -12,6 +12,7 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.ContentType
 import groovyx.net.http.Method
 import groovyx.net.http.RESTClient
+import org.jsoup.Connection
 
 import javax.net.ssl.SSLHandshakeException
 
@@ -56,23 +57,25 @@ class BootStrap {
             addApnsMethods(klass)
             klass.metaClass.APP_SECRET = grails.restfb.app.secret
             klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
-
-            klass.metaClass.static.viaHttpGet = { String link, Closure responseHandler ->
-
-                def http = new HTTPBuilder(link)
-
-                http.request(Method.GET, ContentType.APPLICATION_JSON) {
-
-                    response.success = { resp, reader ->
-
-                    }
-                }
-
-            }
         }
     }
 
 
+    def addHTTPMethods(Class klass) {
+        klass.metaClass.static.viaHttp = {Method method, String link, Closure responseHandler ->
+
+            def http = new HTTPBuilder(link)
+            http.request(method, ContentType.APPLICATION_JSON) {
+
+                response.success = { resp, reader ->
+                    responseHandler(response)
+                }
+            }
+        }
+        klass.metaClass.static.with {
+            httpGet = klass.metaClass.static.viaHttp.curry(Method.GET)
+        }
+    }
 
     def addApnsMethods(def klass) {
         klass.metaClass.static.apnsManager = pushManager;

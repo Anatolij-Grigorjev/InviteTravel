@@ -15,7 +15,7 @@ class PicturesController {
     def index = {
         def picture = Picture.get(params.id)
         if (picture) {
-            response.contentType 'application/octet-stream'
+            response.contentType = 'application/octet-stream'
             response.addHeader('Content-disposition', "attachment;filename=${picture.id}")
 
             response.outputStream << new ByteArrayInputStream(picture.data)
@@ -27,6 +27,15 @@ class PicturesController {
 
     def delete = {
 
+        def pictureId = params.id
+        def picture = Picture.get(pictureId)
+
+        if (picture) {
+            picture.delete(flush: true)
+            render (status: 200)
+        } else {
+            render (status: 404)
+        }
     }
 
     def upload = {
@@ -35,19 +44,14 @@ class PicturesController {
 
         def user = User.get(params.id)
 
-        if (user?.pictures?.size() < User.MAX_PICTURES) {
-            Picture pic = new Picture(["data" : picture.bytes, "mimeType" : picture.contentType])
-            pic = pic.save()
-            if (pic) {
-                pic = pic.save(true)
-                def message = ['pictureId': "${pic?.id}"]
-                render message as JSON
-            } else {
-                def message = ['message' : "Picture ${picture} not saved!"]
-                render message as JSON
-            }
+        Picture pic = new Picture(["data" : picture.bytes, "mimeType" : picture.contentType])
+        pic = pic.save()
+        if (pic) {
+            pic = pic.save(true)
+            def message = ['pictureId': "${pic?.id}"]
+            render message as JSON
         } else {
-            def message = ['message':"No known user has id ${params.id}!"]
+            def message = ['message' : "Picture ${picture} not saved!"]
             render message as JSON
         }
     }

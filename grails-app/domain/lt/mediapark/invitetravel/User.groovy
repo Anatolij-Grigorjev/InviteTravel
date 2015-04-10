@@ -2,7 +2,7 @@ package lt.mediapark.invitetravel
 
 class User {
 
-    public static final int MAX_PICTURES = 4;
+    public static final int MAX_ACTIVE_PICTURES = 4;
 
     static constraints = {
         name nullable: false
@@ -10,7 +10,7 @@ class User {
         deviceToken unique: true
         userIdFb unique: true
         userIdVk unique: true
-        userValid nullable: false
+        valid nullable: false
     }
 
     static hasMany = [
@@ -40,7 +40,7 @@ class User {
     List<ChatMessage> messagesFromMe = []
     Date lastPayment
     Date lastActive
-    Boolean userValid = true
+    Boolean valid = true
     Long defaultPictureId
     List listedIds = []
 }
