@@ -21,6 +21,24 @@ class UrlMappings {
             action = 'index'
         }
 
+        "/chat/$id1/$id2/$time?"{
+            constraints {
+                id1 matches: /\d+/
+                id2 matches: /\d+/
+                time matches: /\d+/
+            }
+            action = 'index'
+            controller = 'chat'
+        }
+        "/chat/send/$id1/$id2"{
+            constraints {
+                id1 matches: /\d+/
+                id2 matches: /\d+/
+            }
+            action = 'send'
+            controller = 'chat'
+        }
+
 
 
         "/" (view: 'index')

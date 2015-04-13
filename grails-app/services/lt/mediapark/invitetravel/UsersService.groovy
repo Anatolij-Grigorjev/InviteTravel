@@ -7,17 +7,18 @@ class UsersService {
 
     def loginService
 
-    def updateUser(def userId, def jsonMap) {
+    def updateUser(def userId, Map jsonMap) {
         //nice if user was already cached (also most probable)
         def user = loginService.loggedInUsers[userId]?:User.get(userId)
 
-        jsonMap.keys.each { it ->
-            if (!it.eqauls('id') && !it.equals('name')) {
-                if (user.$it) {
+        jsonMap.keySet().each { it ->
+            if (!it.equals('id') && !it.equals('name')) {
+                if (user.hasProperty(it)) {
                     user.$it = jsonMap.$it
                 }
             }
         }
+        user.defaultPictureId = user.pictures[0]?.id?: null;
 
         user.save()
     }
@@ -50,7 +51,7 @@ class UsersService {
                 }
             }
             order('lastActive', 'desc')
-            maxResults(amount)
+            setMaxResults(Integer.parseInt(amount))
             eq(valid, true)
             notIn('id') { loginService.loggedInUsers[userId]?.listedIds }
         }

@@ -29,7 +29,7 @@ class LoginService {
     private Place getPlace(String name) {
         if (name) {
             "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=" +
-                    "${PLACES_API_KEY}&types=${'regions'}&name=${name}"
+                    "${PLACES_API_KEY}&types=${'regions'}&name=${name}&language=en"
         } else {
             return null;
         }

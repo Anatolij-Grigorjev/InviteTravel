@@ -3,11 +3,18 @@ package lt.mediapark.invitetravel
 class ChatMessage {
 
     static constraints = {
-        all nullable: false
+        from nullable: false
+        to nullable: false
+        text nullable: false
+        read nullable: false
+        sent nullable: false
+
     }
 
     User from
     User to
     Boolean read = false
     String text
+    Date sent
+    Date received
 }

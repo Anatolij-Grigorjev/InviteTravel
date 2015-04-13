@@ -20,8 +20,7 @@ class PicturesController {
 
             response.outputStream << new ByteArrayInputStream(picture.data)
         } else {
-            def message = ['message': 'Picture is gone!']
-            render ([status: 404], message) as JSON
+            render(status: 404)
         }
     }
 
@@ -45,7 +44,11 @@ class PicturesController {
         def user = User.get(params.id)
 
         Picture pic = new Picture(["data" : picture.bytes, "mimeType" : picture.contentType])
-        pic = pic.save()
+        if (!user.pictures) {
+            user.defaultPictureId = pic.id
+        }
+        user.pictures << pic
+        user.save()
         if (pic) {
             pic = pic.save(true)
             def message = ['pictureId': "${pic?.id}"]

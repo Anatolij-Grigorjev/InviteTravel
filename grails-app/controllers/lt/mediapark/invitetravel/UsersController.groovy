@@ -19,17 +19,26 @@ class UsersController {
 
     def index = {
         def user = usersService.getUser(params.id)
-        def target = user? {
-            def userMap = [:]
-            userMap['id'         ] = user?.id
-            userMap['name'       ] = user?.name
-            userMap['description'] = user?.description
-            userMap['residence'  ] = user?.residence
-            userMap['level'      ] = user?.level.rank
-            userMap['wantToVisit'] = user?.wantToVisit
-            userMap['pictures'  ] = [user?.defaultPictureId] << user?.pictures?.collect { it.id } as Set
-        } : ['status': 404]
-        render target as JSON
+        if (user) {
+            def target =  {
+                def userMap = [:]
+                userMap['id'         ] = user?.id
+                userMap['name'       ] = user?.name
+                userMap['description'] = user?.description
+                userMap['residence'  ] = user?.residence
+                userMap['level'      ] = user?.level.rank
+                userMap['wantToVisit'] = user?.wantToVisit
+                userMap['pictures'  ] = {
+                    Set set = [user?.defaultPictureId]
+                    set.addAll(user?.pictures?.collect { it.id })
+                    set.findAll { it != null }
+                }.call()
+                userMap
+            }.call()
+            render target as JSON
+        } else {
+            render (status: 404)
+        }
     }
 
     def update = {

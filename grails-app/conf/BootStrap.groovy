@@ -12,6 +12,8 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.ContentType
 import groovyx.net.http.Method
 import groovyx.net.http.RESTClient
+import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang.WordUtils
 import org.jsoup.Connection
 
 import javax.net.ssl.SSLHandshakeException
@@ -72,8 +74,11 @@ class BootStrap {
                 }
             }
         }
-        klass.metaClass.static.with {
-            httpGet = klass.metaClass.static.viaHttp.curry(Method.GET)
+
+        //curry the httpGet, httpPost, httpDelete, httpPut, httpHead methods
+        Method.values().each { it ->
+            def name = WordUtils.capitalizeFully(it.toString())
+            klass.metaClass.static."http${name}" = klass.metaClass.static.viaHttp.curry(it)
         }
     }
 
