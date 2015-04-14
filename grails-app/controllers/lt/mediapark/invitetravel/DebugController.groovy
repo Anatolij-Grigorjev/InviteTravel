@@ -1,6 +1,8 @@
 package lt.mediapark.invitetravel
 
 import grails.converters.JSON
+import lt.mediapark.inviteTravel.enums.Source
+import lt.mediapark.inviteTravel.enums.UserLevel
 
 class DebugController {
 

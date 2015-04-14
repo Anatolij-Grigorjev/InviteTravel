@@ -1,5 +1,7 @@
 package lt.mediapark.invitetravel
 
+import grails.converters.JSON
+
 class ChatController {
 
 
@@ -12,8 +14,8 @@ class ChatController {
 
     def index = {
 
-        List<ChatMessage> correspondence = chatService.getCorrespondence(param.id1, param.id2, new Date(param.time?:0L))
-        def userMaps = correspondence.collect { it ->
+        List<ChatMessage> correspondence = chatService.getCorrespondence(params.id1, params.id2, params.requestor, new Date(params.time?:0L))
+        def userMaps = correspondence.collect {
             def map = [
                     'text' : it.text,
                     'fromId' : it.from.id,
@@ -33,7 +35,7 @@ class ChatController {
 
 
     def send = {
-        chatService.sendMessage(param.id1, param.id2, request.JSON.text)
+        chatService.sendMessage(params.requestor, params.id, request.JSON.text)
         render(status: 200)
     }
 

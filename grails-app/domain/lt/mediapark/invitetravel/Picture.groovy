@@ -7,5 +7,6 @@ class Picture {
     }
 
     String mimeType
+    String name
     byte[] data
 }

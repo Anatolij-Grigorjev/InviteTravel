@@ -11,10 +11,10 @@ class UsersService {
         //nice if user was already cached (also most probable)
         def user = loginService.loggedInUsers[userId]?:User.get(userId)
 
-        jsonMap.keySet().each { it ->
+        jsonMap.keySet().each {
             if (!it.equals('id') && !it.equals('name')) {
                 if (user.hasProperty(it)) {
-                    user.$it = jsonMap.$it
+                    user."${it}" = jsonMap."${it}"
                 }
             }
         }
@@ -27,32 +27,22 @@ class UsersService {
         if (jsonMap?.fresh) {
             loginService.loggedInUsers[userId]?.listedIds?.clear()
         }
+        Closure placesCriteria = {
+            if (jsonMap?.query) {
+                like('description', "%${jsonMap.query}%")
+            }
+            if (jsonMap?.place) {
+                like('placeId', "${jsonMap.place?.placeId}")
+                like('description', "%${jsonMap.place?.description}%")
+            }
+        }
+        String searchArea = jsonMap?.searchType == 0? "residence" : "wantToVisit";
+        Integer amountNum = Integer.parseInt(amount)
         User.createCriteria().list {
-            if (jsonMap?.searchType == 0) {
-                residence {
-                    if (jsonMap?.query) {
-                        like('description', "%${jsonMap.query}%")
-                    }
-                    if (jsonMap?.place) {
-                        like('placeId', "${jsonMap.place?.placeId}")
-                        like('description', "%${jsonMap.place?.description}%")
-                    }
-                }
-            }
-            if (jsonMap?.searchType == 1) {
-                wantToVisit {
-                    if (jsonMap?.query) {
-                        like('description', "%${jsonMap.query}%")
-                    }
-                    if (jsonMap?.place) {
-                        like('placeId', "${jsonMap.place?.placeId}")
-                        like('description', "%${jsonMap.place?.description}%")
-                    }
-                }
-            }
+            ${searchArea}(placesCriteria)
             order('lastActive', 'desc')
-            setMaxResults(Integer.parseInt(amount))
-            eq(valid, true)
+            setMaxResults(amountNum)
+            eq('valid', true)
             notIn('id') { loginService.loggedInUsers[userId]?.listedIds }
         }
     }

@@ -1,5 +1,7 @@
 package lt.mediapark.invitetravel
 
+import lt.mediapark.inviteTravel.enums.UserLevel
+
 class User {
 
     public static final int MAX_ACTIVE_PICTURES = 4;

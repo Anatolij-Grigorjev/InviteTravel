@@ -30,10 +30,9 @@ class UrlMappings {
             action = 'index'
             controller = 'chat'
         }
-        "/chat/send/$id1/$id2"{
+        "/chat/send/$id"{
             constraints {
-                id1 matches: /\d+/
-                id2 matches: /\d+/
+                id matches: /\d+/
             }
             action = 'send'
             controller = 'chat'

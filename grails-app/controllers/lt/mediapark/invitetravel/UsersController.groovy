@@ -1,21 +1,21 @@
 package lt.mediapark.invitetravel
 
-import org.springframework.web.multipart.commons.CommonsMultipartFile
+import lt.mediapark.inviteTravel.enums.LoginType
+import lt.mediapark.inviteTravel.enums.UserLevel
 import grails.converters.JSON
-
-import javax.xml.ws.Response
 
 class UsersController {
 
     static allowedMethods = [
         login: 'POST',
-        list: 'GET',
+        list: 'POST',
         update: 'POST',
         logout: 'GET',
         index: 'GET'
     ]
 
     def usersService
+    def loginService
 
     def index = {
         def user = usersService.getUser(params.id)
@@ -63,10 +63,10 @@ class UsersController {
         def rightLogin = null;
         switch (loginType) {
             case LoginType.VK:
-                rightLogin = usersService.&loginVK
+                rightLogin = loginService.&loginVK
                 break
             case LoginType.FB:
-                rightLogin = usersService.&loginFB
+                rightLogin = loginService.&loginFB
                 break
         }
         userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY

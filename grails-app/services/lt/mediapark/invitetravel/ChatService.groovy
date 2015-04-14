@@ -10,12 +10,38 @@ class ChatService {
 
     private static final int MAX_MESSAGE_CHARS = 30;
 
-    def getCorrespondence(def userFromId, def userToId, Date latest) {
+    def getCorrespondence(def userId1, def userId2, def requestorId, Date latest) {
 
-        def fromUser = usersService.getUser(userFromId)
-        def toUser = usersService.getUser(userToId)
-
-        def messages = ChatMessage.findAllByFromAndToAndSentGreaterThan(fromUser, toUser, latest)
+        def messages = ChatMessage.createCriteria().list {
+            or {
+                and {
+                    eq('from.id', Long.parseLong(userId2))
+                    eq('to.id', Long.parseLong(userId1))
+                }
+                and {
+                    eq('from.id', Long.parseLong(userId1))
+                    eq('to.id', Long.parseLong(userId2))
+                }
+            }
+            order('sent', 'asc')
+        }
+        def requestorNum = Long.parseLong(requestorId)
+        messages.each { it ->
+            if (requestorNum == it.to.id) {
+                def altered = false
+                if (!it.received) {
+                    it.received = new Date()
+                    altered = true
+                }
+                if (!it.read) {
+                    it.read = true
+                    altered = true
+                }
+                if (altered) {
+                    it.save()
+                }
+            }
+        }
         messages
     }
 
@@ -27,7 +53,6 @@ class ChatService {
         ChatMessage message = new ChatMessage(from: fromUser, to: toUser, text: text, sent: new Date())
         fromUser.messagesFromMe << message
         toUser.messagesToMe << message
-        message.save()
         fromUser.save()
         toUser.save()
         if (toUser.deviceToken) {

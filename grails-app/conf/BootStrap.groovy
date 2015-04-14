@@ -44,7 +44,7 @@ class BootStrap {
             pushManager = new PushManager<ApnsPushNotification>(
                     apnsEnv,
                     sslCtx,
-                    null, //even loop group
+                    null, //event loop group
                     null, //executor service
                     null, //blocking queue
                     managerConfig,
@@ -57,6 +57,7 @@ class BootStrap {
         }
         grailsApplication.getAllArtefacts().each { klass ->
             addApnsMethods(klass)
+            addHTTPMethods(klass)
             klass.metaClass.APP_SECRET = grails.restfb.app.secret
             klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
         }
@@ -67,10 +68,12 @@ class BootStrap {
         klass.metaClass.static.viaHttp = {Method method, String link, Closure responseHandler ->
 
             def http = new HTTPBuilder(link)
-            http.request(method, ContentType.APPLICATION_JSON) {
+            http.request(method, ContentType.JSON) {
 
-                response.success = { resp, reader ->
-                    responseHandler(response)
+                headers.Accept = 'application/json'
+
+                response.success = { resp, json ->
+                    responseHandler(json)
                 }
             }
         }
@@ -79,6 +82,15 @@ class BootStrap {
         Method.values().each { it ->
             def name = WordUtils.capitalizeFully(it.toString())
             klass.metaClass.static."http${name}" = klass.metaClass.static.viaHttp.curry(it)
+        }
+        klass.metaClass.static.downloadImage = { String address ->
+            def tokens = address.tokenize('/')
+            String last = tokens[-1]
+            def name = last.contains('.')?:"${last}.png"
+            def file = new File(name).withOutputStream { out ->
+                out << new URL(address).openStream()
+            }
+            file
         }
     }
 
@@ -104,18 +116,12 @@ class BootStrap {
 
         }
 
-        try {
-
-            //classes with device token saved in them can curry the apns closure
-            if (klass.getDeclaredField('deviceToken')) {
-                klass.metaClass.registerDeviceToken = { token ->
-                    klass.metaClass.pushNotification = sendNotification.curry(token)
-                }
+        //classes with device token saved in them can curry the apns closure
+        if (klass.metaClass.hasProperty('deviceToken')) {
+            klass.metaClass.registerDeviceToken = { token ->
+                klass.metaClass.pushNotification = sendNotification.curry(token)
             }
-        } catch (Exception e) {
-            //skip this one, it doesnt declare the token
         }
-
     }
 
 
@@ -130,7 +136,7 @@ class BootStrap {
             if (cause instanceof SSLHandshakeException) {
                 //need to shutdown manager since no more SSL
                 log.fatal "SSL Certificate expired/invalid (${cause.message})! Shuttind dow push service..."
-                pushManager.shutDown
+                pushManager.shutDown()
             }
 
         }
@@ -139,6 +145,6 @@ class BootStrap {
 
 
     def destroy = {
-        if (pushManager.isStarted()) pushManager.shutDown
+        if (pushManager.isStarted()) pushManager.shutDown()
     }
 }
