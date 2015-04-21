@@ -1,8 +1,8 @@
 package lt.mediapark.invitetravel
 
-import lt.mediapark.inviteTravel.enums.LoginType
-import lt.mediapark.inviteTravel.enums.UserLevel
 import grails.converters.JSON
+import lt.mediapark.invitetravel.enums.LoginType
+import lt.mediapark.invitetravel.enums.UserLevel
 
 class UsersController {
 
@@ -43,7 +43,7 @@ class UsersController {
 
     def update = {
         try {
-            usersService.updateUser(params.requestor, request.JSON)
+            def user = usersService.updateUser(params.requestor, request.JSON)
             render(status: 200)
         } catch (Exception e) {
             def message = ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]

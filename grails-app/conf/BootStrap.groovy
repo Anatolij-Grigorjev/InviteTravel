@@ -65,7 +65,7 @@ class BootStrap {
 
 
     def addHTTPMethods(Class klass) {
-        klass.metaClass.static.viaHttp = {Method method, String link, Closure responseHandler ->
+        klass.metaClass.static.viaHttp = { Method method, String link, Closure responseHandler ->
 
             def http = new HTTPBuilder(link)
             http.request(method, ContentType.JSON) {
@@ -79,10 +79,10 @@ class BootStrap {
         }
 
         //curry the httpGet, httpPost, httpDelete, httpPut, httpHead methods
-        Method.values().each { it ->
-            def name = WordUtils.capitalizeFully(it.toString())
-            klass.metaClass.static."http${name}" = klass.metaClass.static.viaHttp.curry(it)
-        }
+//        Method.values().each { it ->
+//            def name = WordUtils.capitalizeFully(it.toString())
+//            klass.metaClass.static."http${name}" = klass.metaClass.static.viaHttp.curry(it)
+//        }
         klass.metaClass.static.downloadImage = { String address ->
             def tokens = address.tokenize('/')
             String last = tokens[-1]

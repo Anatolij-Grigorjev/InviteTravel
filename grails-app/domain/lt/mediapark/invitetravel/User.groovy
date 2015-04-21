@@ -1,6 +1,6 @@
 package lt.mediapark.invitetravel
 
-import lt.mediapark.inviteTravel.enums.UserLevel
+import lt.mediapark.invitetravel.enums.UserLevel
 
 class User {
 

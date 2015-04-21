@@ -4,7 +4,8 @@ import com.restfb.DefaultFacebookClient
 import com.restfb.FacebookClient
 import com.restfb.types.User as FBUser
 import grails.transaction.Transactional
-import lt.mediapark.inviteTravel.enums.PlacesResponse
+import groovyx.net.http.Method
+import lt.mediapark.invitetravel.enums.PlacesResponse
 
 @Transactional
 class LoginService {
@@ -38,7 +39,7 @@ class LoginService {
         Place place = null
         if (name) {
             def url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=${PLACES_API_KEY}&types=${'regions'}&name=${name}&language=en"
-            httpGet(url) { Map json ->
+            viaHttp(Method.GET, url) { Map json ->
                 log.info("Response code: ${json.status}")
                 def code = PlacesResponse.valueOf(json.status)
                 switch (code) {

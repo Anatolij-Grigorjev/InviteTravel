@@ -1,4 +1,4 @@
-package lt.mediapark.inviteTravel.enums
+package lt.mediapark.invitetravel.enums
 
 /**
  * Created by anatolij on 02/04/15.
