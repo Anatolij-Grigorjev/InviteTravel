@@ -6,6 +6,7 @@ import com.restfb.types.User as FBUser
 import grails.transaction.Transactional
 import groovyx.net.http.Method
 import lt.mediapark.invitetravel.enums.PlacesResponse
+import lt.mediapark.invitetravel.enums.UserLevel
 
 @Transactional
 class LoginService {
@@ -23,7 +24,7 @@ class LoginService {
         user.valid = true
         //user is new
         if (!user.id) {
-            user.level = jsonMap.level
+            user.level = UserLevel.findForLevel(jsonMap.level)
             user.name = fbUser?.name
             user.residence = getPlace(fbUser?.location?.name)
             File avatar = downloadImage(fbUser?.picture?.url)
@@ -76,6 +77,9 @@ class LoginService {
     private Map finishLogin(User user) {
         def result = [:]
         result.fresh = !!user.id
+        if (!user.level) {
+            user.level = UserLevel.CANT_PAY
+        }
         user.lastActive = new Date()
         user.valid = true
         user.save()

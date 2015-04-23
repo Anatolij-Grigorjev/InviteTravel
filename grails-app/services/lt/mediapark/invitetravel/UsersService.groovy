@@ -1,6 +1,7 @@
 package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
+import lt.mediapark.invitetravel.enums.UserLevel
 
 @Transactional
 class UsersService {
@@ -14,15 +15,15 @@ class UsersService {
         if (jsonMap.description)
             user.description = jsonMap.description
         if (jsonMap.lastPayment)
-            user.lastPayment = new Date(json.lastPayment)
+            user.lastPayment = new Date(jsonMap.lastPayment)
         if (jsonMap.level)
-            user.level = jsonMap.level
+            user.level = UserLevel.findForLevel(jsonMap.level)
         if (jsonMap.residence)
-            user.residence = new Place(id: jsonMap.residence.id, description: jsonMap.residence.description)
+            user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
         if (jsonMap.wantToVisit) {
             user.wantToVisit.clear()
             jsonMap.wantToVisit.each {
-                user.wantToVisit << new Place(id: it.id, description: it.description)
+                user.wantToVisit << Place.findOrSaveWhere([placeId: it.id, description: it.description])
             }
         }
         if (jsonMap.pictures) {
@@ -50,11 +51,14 @@ class UsersService {
         String searchArea = jsonMap?.searchType == 0? "residence" : "wantToVisit";
         Integer amountNum = Integer.parseInt(amount)
         User.createCriteria().list {
-            ${searchArea}(placesCriteria)
+            "${searchArea}"(placesCriteria)
             order('lastActive', 'desc')
+            order('defaultPictureId', 'desc')
             setMaxResults(amountNum)
             eq('valid', true)
-            notIn('id') { loginService.loggedInUsers[userId]?.listedIds }
+//            notIn('id') {
+//
+//            }
         }
     }
 

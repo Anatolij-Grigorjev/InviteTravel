@@ -1,9 +1,5 @@
 package lt.mediapark.invitetravel
 
-import grails.util.Environment
-import lt.mediapark.invitetravel.Picture
-import lt.mediapark.invitetravel.User
-
 class CommonFilters {
 
     def usersService

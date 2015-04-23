@@ -2,7 +2,6 @@ package lt.mediapark.invitetravel
 
 import grails.converters.JSON
 import lt.mediapark.invitetravel.enums.LoginType
-import lt.mediapark.invitetravel.enums.UserLevel
 
 class UsersController {
 
@@ -46,6 +45,7 @@ class UsersController {
             def user = usersService.updateUser(params.requestor, request.JSON)
             render(status: 200)
         } catch (Exception e) {
+            log.warn('Failed to update user!', e)
             def message = ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]
             render message as JSON
         }
@@ -69,7 +69,7 @@ class UsersController {
                 rightLogin = loginService.&loginFB
                 break
         }
-        userAttrs[level] = UserLevel.findForLevel(request.JSON.level) ?: UserLevel.CANT_PAY
+        userAttrs[level] = request.JSON.level
         userAttrs << request.JSON
         def userInfo = rightLogin(userAttrs)
         def result = ['userId' : userInfo.id]

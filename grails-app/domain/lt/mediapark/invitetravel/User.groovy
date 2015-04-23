@@ -36,7 +36,7 @@ class User {
     Long userIdFb
     Long userIdVk
     List<Place> wantToVisit
-    UserLevel level = UserLevel.CANT_PAY
+    UserLevel level
     List<Picture> pictures = []
     List<ChatMessage> messagesToMe = []
     List<ChatMessage> messagesFromMe = []

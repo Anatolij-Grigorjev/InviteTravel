@@ -6,18 +6,15 @@ import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import com.relayrides.pushy.apns.util.SSLContextUtil
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
-import com.restfb.DefaultFacebookClient
-import com.restfb.FacebookClient
-import groovyx.net.http.HTTPBuilder
+import grails.converters.JSON
 import groovyx.net.http.ContentType
+import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
-import groovyx.net.http.RESTClient
-import org.apache.commons.lang.StringUtils
-import org.apache.commons.lang.WordUtils
-import org.jsoup.Connection
+import lt.mediapark.invitetravel.UserLevel
+import lt.mediapark.invitetravel.enums.UserLevel
+import lt.mediapark.invitetravel.enums.UserLevel
 
 import javax.net.ssl.SSLHandshakeException
-
 
 class BootStrap {
 
@@ -27,6 +24,11 @@ class BootStrap {
     PushManager pushManager
 
     def init = { servletContext ->
+
+
+
+//        JSON.registerObjectMarshaller(new NoClassNameObjectMarshaller())
+
         def apnsEnv = null;
         grails = grailsApplication.config.grails
         def managerConfig = new PushManagerConfiguration()

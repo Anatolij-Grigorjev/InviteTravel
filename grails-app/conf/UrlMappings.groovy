@@ -1,5 +1,3 @@
-import grails.rest.RestfulController
-
 class UrlMappings {
 
 	static mappings = {
@@ -12,6 +10,10 @@ class UrlMappings {
         "/debug/login" {
             controller = 'debug'
             action = 'login'
+        }
+        "/debug/list" {
+            controller ='debug'
+            action = 'list'
         }
 
         "/$controller/$id?"{
