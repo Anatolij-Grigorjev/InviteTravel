@@ -103,21 +103,23 @@ environments {
     }
 }
 
-//path to the APNs .p12 keystore
+//paths and magic numbers that ensure integration with all systems
 environments {
     development {
         grails.apns.p12.path = 'keystore.p12'
         grails.apns.p12.password = 'callmeishmel'
         grails.apns.manager.name = 'DEV-PUSHY-MANAGER'
-        grails.restfb.app.secret = 'secretsecret'
-        grails.google.places.api.key = 'keyley'
+        grails.restfb.app.secret = '3389596a5a29f9c94c3f57b2355153eb'
+        grails.restfb.app.id = '397500593755474'
+        grails.google.places.api.key = 'AIzaSyDOamAMzFhqBOYihbYsZRmfGSsUO9XOpWE'
     }
     production {
         grails.apns.p12.path = 'keystore.p12'
         grails.apns.p12.password = 'callmeishmel'
         grails.apns.manager.name = 'Prod-Pushy-Manager'
-        grails.restfb.app.secret = 'secretsecret'
-        grails.google.places.api.key = 'keyley'
+        grails.restfb.app.secret = '3389596a5a29f9c94c3f57b2355153eb'
+        grails.restfb.app.id = '397500593755474'
+        grails.google.places.api.key = 'AIzaSyDOamAMzFhqBOYihbYsZRmfGSsUO9XOpWE'
     }
 }
 
@@ -128,6 +130,10 @@ log4j.main = {
     //appenders {
     //    console name:'stdout', layout:pattern(conversionPattern: '%c{2} %m%n')
     //}
+
+    debug  'grails.app.controllers',        // controllers
+           'grails.app.services',
+            'grails.app.filters'
 
     error  'org.codehaus.groovy.grails.web.servlet',        // controllers
            'org.codehaus.groovy.grails.web.pages',          // GSP

@@ -3,6 +3,7 @@ package lt.mediapark.invitetravel
 import grails.converters.JSON
 import lt.mediapark.invitetravel.enums.Source
 import lt.mediapark.invitetravel.enums.UserLevel
+import lt.mediapark.invitetravel.utils.ConversionsHelper
 
 class DebugController {
 
@@ -11,7 +12,10 @@ class DebugController {
             list: 'POST'
     ]
 
+    def cities = ['Paris', 'Belgium', 'Texas', 'Brazil', 'Tokyo', 'Vilnius', 'Stockholm']
+
     def loginService
+    def placesService
 
     def login = {
 
@@ -42,32 +46,27 @@ class DebugController {
         int amount = rnd.nextInt(25)
 
         List<Map> dummyList = []
-        def userIds = User.all.id
+        def users = User.all
         def levels = UserLevel.values()
-        if (userIds.size() < amount) {
-            (amount - userIds.size() + 1).times {
+        def picIds = Picture.all.id
+        if (users.size() < amount) {
+            (amount - users.size() + 1).times {
                 def user = new User()
                 def fieldChoice = (rnd.nextBoolean()? 'userIdVk' : 'userIdFb' )
                 user.description = "This is a test user created using the Debug controller at ${new Date()}"
                 user.level = levels.toList()[rnd.nextInt(levels.size())]
                 user.name = "Test Testinsky #${new Date().time}"
-                user."$fieldChoice" = rnd.nextLong()
+                user."$fieldChoice" = Math.abs(rnd.nextLong())
                 user.lastActive = new Date()
-
+                if (!user.pictures) user.pictures.addAll(picIds.size() >= User.MAX_ACTIVE_PICTURES? picIds.subList(0, rnd.nextInt(User.MAX_ACTIVE_PICTURES) + 1) : picIds)
+                user.residence = placesService.getPlace(cities[rnd.nextInt(cities.size())])
                 user = user.save()
-                userIds << user.id
+                users << user
             }
         }
-        def picIds = Picture.all.id
-        amount.times {
-            Map map = [:]
-            map.'id' = userIds[rnd.nextInt(userIds.size())]
-            map.'hasMessages' = rnd.nextBoolean()
-            map.'level' = levels.rank[rnd.nextInt(levels.size())]
-            map.'thumbnail' = picIds? picIds[rnd.nextInt(picIds.size())] : null;
-            map.'lastActive' = Math.abs(new Date().time - rnd.nextLong())
-
-            dummyList << map
+        users.each {
+            loginService.loggedInUsers << ["${it.id}": it]
+            dummyList << ConversionsHelper.userToListMap(it)
         }
         dummyList.sort(true) {it.lastActive}
 

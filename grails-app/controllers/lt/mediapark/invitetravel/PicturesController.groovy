@@ -41,7 +41,7 @@ class PicturesController {
 
         CommonsMultipartFile picture = request.getFile('picture')
 
-        def user = User.get(params.id)
+        def user = User.get(params.requestor)
 
         Picture pic = new Picture(["data" : picture.bytes, "mimeType" : picture.contentType])
         if (!user.pictures) {

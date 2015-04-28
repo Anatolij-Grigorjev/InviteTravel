@@ -2,7 +2,9 @@ package lt.mediapark.invitetravel
 
 import com.restfb.DefaultFacebookClient
 import com.restfb.FacebookClient
+import com.restfb.Version
 import com.restfb.types.User as FBUser
+import com.restfb.types.User.Picture as FBPicture
 import grails.transaction.Transactional
 import groovyx.net.http.Method
 import lt.mediapark.invitetravel.enums.PlacesResponse
@@ -10,6 +12,8 @@ import lt.mediapark.invitetravel.enums.UserLevel
 
 @Transactional
 class LoginService {
+
+    def placesService
 
     Map<?, User> loggedInUsers = [:]
 
@@ -19,59 +23,32 @@ class LoginService {
     }
 
     def loginFB(def jsonMap) {
-        FBUser fbUser = fetchMeFb(jsonMap)
-        def user = User.findWhere('userIdFb' : fbUser?.id) ?: new User(userIdFb: Long.parse(fbUser?.id))
-        user.valid = true
-        //user is new
-        if (!user.id) {
-            user.level = UserLevel.findForLevel(jsonMap.level)
-            user.name = fbUser?.name
-            user.residence = getPlace(fbUser?.location?.name)
-            File avatar = downloadImage(fbUser?.picture?.url)
-            Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png')
-            picture = picture.save()
-            user.defaultPictureId = picture.id
-        }
-        user.pictures << picture
-        finishLogin(user)
-    }
-
-    private Place getPlace(String name) {
-        Place place = null
-        if (name) {
-            def url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=${PLACES_API_KEY}&types=${'regions'}&name=${name}&language=en"
-            viaHttp(Method.GET, url) { Map json ->
-                log.info("Response code: ${json.status}")
-                def code = PlacesResponse.valueOf(json.status)
-                switch (code) {
-                    case PlacesResponse.OK:
-                        List results = json.results
-                        if (results) {
-                            Map placeMap = results[0]
-                            place = new Place(placeId: placeMap."place_id", description: placeMap."name")
-                        }
-                        break
-                    case PlacesResponse.ZERO_RESULTS:
-                        log.warn("No results for query ${url}.")
-                        break
-                    case PlacesResponse.OVER_QUERY_LIMIT:
-                        log.warn("Daily query limit reached, try again later.")
-                        break
-                    case PlacesResponse.REQUEST_DENIED:
-                        log.warn("The Places API request was denied, possibly bad key ${PLACES_API_KEY}.")
-                        break
-                    case PlacesResponse.INVALID_REQUEST:
-                        log.warn("The supplied URL ${url} was invalid...")
-                        break
+        def accessToken = jsonMap.accessToken
+        fetchFBObject(accessToken, 'me', FBUser.class) { FBUser fbUser ->
+            def parsedFbId = Long.parseLong(fbUser?.id)
+            def user = User.findWhere('userIdFb' : parsedFbId) ?: new User(userIdFb: parsedFbId)
+            user.valid = true
+            //user is new
+            if (!user.id) {
+                user.level = UserLevel.findForLevel(jsonMap.level)
+                user.name = fbUser?.name
+                user.residence = placesService.getPlace(fbUser?.location?.name)
+                //fetching profile picture
+                fetchFBObject(accessToken, 'me/picture', FBPicture.class) { FBPicture pic ->
+                    File avatar = downloadImage(pic?.url)
+                    if (avatar) {
+                        Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png')
+                        picture = picture.save()
+                        user.defaultPictureId = picture.id
+                    } else {
+                        log.warn "User ${parsedFbId} did not have a picture to their profile!"
+                    }
                 }
-            }
-        }
-        place
-    }
 
-    private FBUser fetchMeFb(Map jsonMap) {
-        FacebookClient client = new DefaultFacebookClient(accessToken: jsonMap.accessToken, APP_SECRET)
-        client.fetchObject('me', FBUser.class)
+            }
+            user.pictures << picture
+            finishLogin(user)
+        }
     }
 
     private Map finishLogin(User user) {

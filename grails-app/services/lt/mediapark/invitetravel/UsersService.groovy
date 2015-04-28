@@ -12,14 +12,10 @@ class UsersService {
         //nice if user was already cached (also most probable, as you can only update yourself)
         def user = loginService.loggedInUsers[userId]?:User.get(userId)
 
-        if (jsonMap.description)
-            user.description = jsonMap.description
-        if (jsonMap.lastPayment)
-            user.lastPayment = new Date(jsonMap.lastPayment)
-        if (jsonMap.level)
-            user.level = UserLevel.findForLevel(jsonMap.level)
-        if (jsonMap.residence)
-            user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
+        if (jsonMap.description) user.description = jsonMap.description
+        if (jsonMap.lastPayment) user.lastPayment = new Date(jsonMap.lastPayment)
+        if (jsonMap.level) user.level = UserLevel.findForLevel(jsonMap.level)
+        if (jsonMap.residence) user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
         if (jsonMap.wantToVisit) {
             user.wantToVisit.clear()
             jsonMap.wantToVisit.each {
@@ -35,9 +31,9 @@ class UsersService {
         user.save()
     }
 
-    def getUsersList(def userId, def amount, def jsonMap) {
+    def getUsersList(User user, Integer amount, def jsonMap) {
         if (jsonMap?.fresh) {
-            loginService.loggedInUsers[userId]?.listedIds?.clear()
+            user.listedIds?.clear()
         }
         Closure placesCriteria = {
             if (jsonMap?.query) {
@@ -49,16 +45,16 @@ class UsersService {
             }
         }
         String searchArea = jsonMap?.searchType == 0? "residence" : "wantToVisit";
-        Integer amountNum = Integer.parseInt(amount)
+        if (!user.listedIds) {user.listedIds << user.id}
         User.createCriteria().list {
             "${searchArea}"(placesCriteria)
             order('lastActive', 'desc')
             order('defaultPictureId', 'desc')
-            setMaxResults(amountNum)
+            setMaxResults(amount)
             eq('valid', true)
-//            notIn('id') {
-//
-//            }
+            not {
+                'in'('id', user?.listedIds)
+            }
         }
     }
 

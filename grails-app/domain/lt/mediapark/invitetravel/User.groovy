@@ -30,7 +30,7 @@ class User {
     static transients = ['listedIds']
 
     String name
-    String description
+    String description = ""
     Place residence
     String deviceToken
     Long userIdFb
@@ -44,5 +44,5 @@ class User {
     Date lastActive
     Boolean valid = true
     Long defaultPictureId
-    List listedIds = []
+    Set listedIds = []
 }

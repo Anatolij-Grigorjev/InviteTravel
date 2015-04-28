@@ -2,6 +2,7 @@ package lt.mediapark.invitetravel
 
 import grails.converters.JSON
 import lt.mediapark.invitetravel.enums.LoginType
+import lt.mediapark.invitetravel.utils.ConversionsHelper
 
 class UsersController {
 
@@ -19,21 +20,7 @@ class UsersController {
     def index = {
         def user = usersService.getUser(params.id)
         if (user) {
-            def target =  {
-                def userMap = [:]
-                userMap['id'         ] = user?.id
-                userMap['name'       ] = user?.name
-                userMap['description'] = user?.description
-                userMap['residence'  ] = user?.residence
-                userMap['level'      ] = user?.level.rank
-                userMap['wantToVisit'] = user?.wantToVisit
-                userMap['pictures'  ] = {
-                    Set set = [user?.defaultPictureId]
-                    set.addAll(user?.pictures?.collect { it.id })
-                    set.findAll { it != null }
-                }.call()
-                userMap
-            }.call()
+            def target = ConversionsHelper.userToMap(user)
             render target as JSON
         } else {
             render (status: 404)
@@ -69,7 +56,7 @@ class UsersController {
                 rightLogin = loginService.&loginFB
                 break
         }
-        userAttrs[level] = request.JSON.level
+        userAttrs['level'] = request.JSON.level
         userAttrs << request.JSON
         def userInfo = rightLogin(userAttrs)
         def result = ['userId' : userInfo.id]
@@ -77,17 +64,18 @@ class UsersController {
     }
 
     def list = {
+        def currUser = loginService.loggedInUsers[params.requestor]
+        if (!currUser) {
+            return render(status: 403)
+        }
+        def amount = Integer.parseInt(params.id)
         // in this context the id parameter is used to indicate return list size
         //this is more convenient than defining a whole new url mapping, since old
         //one fits just fine
-        def usersList = usersService.getUsersList(params.requestor, params.id, request.JSON).collect { User user ->
-            [
-             'id'       : user.id,
-             'hasMessages': user.messagesToMe.any {!it.read},
-             'level'    : user.level,
-             'thumbnail': user.defaultPictureId,
-             'lastActive' : user.lastActive.time
-            ]
+        //the JSON map has list parameters (is it fresh, what was the query, what places are we searching in user)
+        def usersList = usersService.getUsersList(currUser, amount, request.JSON).collect { User user ->
+            currUser.listedIds << user.id
+            ConversionsHelper.userToListMap(user)
         }
        render usersList as JSON
     }

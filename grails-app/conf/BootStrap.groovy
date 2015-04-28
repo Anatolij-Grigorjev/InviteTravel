@@ -6,6 +6,9 @@ import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import com.relayrides.pushy.apns.util.SSLContextUtil
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
+import com.restfb.DefaultFacebookClient
+import com.restfb.FacebookClient
+import com.restfb.Version
 import grails.converters.JSON
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
@@ -22,6 +25,7 @@ class BootStrap {
     def grails
 
     PushManager pushManager
+
 
     def init = { servletContext ->
 
@@ -57,11 +61,34 @@ class BootStrap {
         } catch (Exception e) {
             e.printStackTrace()
         }
+
         grailsApplication.getAllArtefacts().each { klass ->
             addApnsMethods(klass)
             addHTTPMethods(klass)
-            klass.metaClass.APP_SECRET = grails.restfb.app.secret
+            klass.metaClass.FB_APP_SECRET = grails.restfb.app.secret
+            klass.metaClass.FB_APP_ID = grails.restfb.app.id
             klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
+
+            klass.metaClass.fetchFBObject = { def accessToken, String path, Class resultType, Closure handler ->
+                FacebookClient fbClient = new DefaultFacebookClient()
+                FacebookClient.AccessToken token = null
+                if (accessToken instanceof String) {
+                    token = fbClient.obtainExtendedAccessToken(FB_APP_ID, FB_APP_SECRET, accessToken)
+                }
+                if (accessToken instanceof FacebookClient.AccessToken) {
+                    //token expired, needs extending
+                    token  = accessToken.expires.time > new Date().time ?:
+                            fbClient.obtainExtendedAccessToken(FB_APP_ID, FB_APP_SECRET, accessToken.accessToken)
+                }
+                if (token == null) {
+                    log.error "Provided accessToken ${accessToken} is invalid!"
+                } else {
+                    log.info "The newly valid token ${token}"
+                }
+                fbClient = new DefaultFacebookClient(accessToken: token.accessToken, appSecret: FB_APP_SECRET)
+                def result = fbClient.fetchObject(path, resultType)
+                handler(result)
+            }
         }
     }
 
@@ -86,6 +113,9 @@ class BootStrap {
 //            klass.metaClass.static."http${name}" = klass.metaClass.static.viaHttp.curry(it)
 //        }
         klass.metaClass.static.downloadImage = { String address ->
+            if (!address) {
+                return null
+            }
             def tokens = address.tokenize('/')
             String last = tokens[-1]
             def name = last.contains('.')?:"${last}.png"
