@@ -8,6 +8,7 @@ import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
 import com.restfb.DefaultFacebookClient
 import com.restfb.FacebookClient
+import com.restfb.Parameter
 import com.restfb.Version
 import grails.converters.JSON
 import groovyx.net.http.ContentType
@@ -16,6 +17,7 @@ import groovyx.net.http.Method
 import lt.mediapark.invitetravel.UserLevel
 import lt.mediapark.invitetravel.enums.UserLevel
 import lt.mediapark.invitetravel.enums.UserLevel
+import org.apache.commons.io.FileUtils
 
 import javax.net.ssl.SSLHandshakeException
 
@@ -70,24 +72,35 @@ class BootStrap {
             klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
 
             klass.metaClass.fetchFBObject = { def accessToken, String path, Class resultType, Closure handler ->
-                FacebookClient fbClient = new DefaultFacebookClient()
-                FacebookClient.AccessToken token = null
-                if (accessToken instanceof String) {
-                    token = fbClient.obtainExtendedAccessToken(FB_APP_ID, FB_APP_SECRET, accessToken)
+                String[] objAndParams = path.split('\\?')
+                String newPath = objAndParams[0]/* + "&access_token=${accessToken}"*/
+                log.debug "Got pure object path: ${newPath}"
+//                log.debug " Using app secret ${FB_APP_SECRET}\n" +
+//                    " Searching path ${newPath}\n" +
+//                    " For class ${resultType}\n"
+                def paramsMap = [:]
+                if (objAndParams.length > 1) {
+                    String params = objAndParams[1]
+                    log.debug "Got params: ${params}"
+                    String[] nameValuePairs = params.split('=')
+                    for (int i = 0; i < nameValuePairs.length; i+=2) {
+                        paramsMap[nameValuePairs[i]] = nameValuePairs[i+1]
+                    }
+//                    log.debug "Got params map: ${paramsMap}"
                 }
-                if (accessToken instanceof FacebookClient.AccessToken) {
-                    //token expired, needs extending
-                    token  = accessToken.expires.time > new Date().time ?:
-                            fbClient.obtainExtendedAccessToken(FB_APP_ID, FB_APP_SECRET, accessToken.accessToken)
-                }
-                if (token == null) {
-                    log.error "Provided accessToken ${accessToken} is invalid!"
+                def fbClient = new DefaultFacebookClient(accessToken, FB_APP_SECRET, Version.VERSION_2_3)
+                def result = null;
+                if (paramsMap) {
+                    def params = paramsMap.collect { it ->
+                        Parameter.with(it.key, it.value)
+                    }
+                    result = fbClient.fetchObject(newPath, resultType, params.toArray(new Parameter[0]))
                 } else {
-                    log.info "The newly valid token ${token}"
+                    result = fbClient.fetchObject(newPath, resultType)
                 }
-                fbClient = new DefaultFacebookClient(accessToken: token.accessToken, appSecret: FB_APP_SECRET)
-                def result = fbClient.fetchObject(path, resultType)
+                log.debug "Fetch result: ${result}"
                 handler(result)
+                log.debug "Handler done!"
             }
         }
     }
@@ -118,10 +131,14 @@ class BootStrap {
             }
             def tokens = address.tokenize('/')
             String last = tokens[-1]
-            def name = last.contains('.')?:"${last}.png"
-            def file = new File(name).withOutputStream { out ->
+            def name = last.contains('.')? last :"${last}.png"
+            //this returns an output stream
+            def file = new File(name)
+            BufferedOutputStream fileStream = file.withOutputStream { out ->
                 out << new URL(address).openStream()
             }
+
+            FileUtils.writeByteArrayToFile(file, fileStream.@buf)
             file
         }
     }

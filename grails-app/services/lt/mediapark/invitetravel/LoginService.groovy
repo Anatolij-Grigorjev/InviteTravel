@@ -24,31 +24,47 @@ class LoginService {
 
     def loginFB(def jsonMap) {
         def accessToken = jsonMap.accessToken
-        fetchFBObject(accessToken, 'me', FBUser.class) { FBUser fbUser ->
-            def parsedFbId = Long.parseLong(fbUser?.id)
-            def user = User.findWhere('userIdFb' : parsedFbId) ?: new User(userIdFb: parsedFbId)
-            user.valid = true
-            //user is new
-            if (!user.id) {
-                user.level = UserLevel.findForLevel(jsonMap.level)
+        def parsedFbId = Long.parseLong(jsonMap.userId)
+        def user = User.findWhere('userIdFb' : parsedFbId) ?: new User(userIdFb: parsedFbId)
+        user.valid = true
+        //user is new
+        if (!user.id && jsonMap.level) {
+            fetchFBObject(accessToken, 'me?fields=locale,location,name,id,picture', FBUser.class) { FBUser fbUser ->
+                user.level = UserLevel.findForLevel(Integer.parseInt(jsonMap.level))
                 user.name = fbUser?.name
-                user.residence = placesService.getPlace(fbUser?.location?.name)
-                //fetching profile picture
-                fetchFBObject(accessToken, 'me/picture', FBPicture.class) { FBPicture pic ->
-                    File avatar = downloadImage(pic?.url)
-                    if (avatar) {
-                        Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png')
-                        picture = picture.save()
-                        user.defaultPictureId = picture.id
-                    } else {
-                        log.warn "User ${parsedFbId} did not have a picture to their profile!"
+                if (fbUser?.location) {
+                    user.residence = placesService.getPlace(fbUser?.location.name)
+                } else {
+                    log.warn("No location disclosed, attempting to resolve via locale ${fbUser?.locale}...")
+                    try {
+                        String[] split = fbUser?.locale?.split('_')
+                        Locale locale = null
+                        if (split.size() > 1) {
+                            locale = new Locale(split[0], split[1])
+                        } else {
+                            locale = new Locale(split[0])
+                        }
+                        user.residence = placesService.getPlace(locale.displayCountry)
+                    } catch (Exception e) {
+                        log.error("Could not achieve residence via locale! ${e.message}", e)
                     }
                 }
-
+                //fetching profile picture
+                File avatar = downloadImage(fbUser?.picture?.url)
+                if (avatar) {
+                    Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png')
+                    picture = picture.save()
+                    user.pictures << picture
+                    if (!user.defaultPictureId) user.defaultPictureId = picture.id
+                } else {
+                    log.warn "User ${parsedFbId} did not have a picture to their profile!"
+                }
             }
-            user.pictures << picture
-            finishLogin(user)
+        } else if (!user.id) {
+            //user doesnt exist AND no level supplied
+            return Collections.EMPTY_MAP
         }
+        finishLogin(user)
     }
 
     private Map finishLogin(User user) {
@@ -61,6 +77,7 @@ class LoginService {
         user.valid = true
         user.save()
         result.userId = user.id
+        log.info "Logging in user ${user}"
         loggedInUsers << ["${user.id}" : user]
         result
     }

@@ -42,15 +42,21 @@ class PicturesController {
         CommonsMultipartFile picture = request.getFile('picture')
 
         def user = User.get(params.requestor)
+        def replace = params.replace
 
-        Picture pic = new Picture(["data" : picture.bytes, "mimeType" : picture.contentType])
-        if (!user.pictures) {
-            user.defaultPictureId = pic.id
-        }
-        user.pictures << pic
-        user.save()
+        //either get or create a picture
+        Picture pic = replace? Picture.get(Long.parseLong(replace)) : new Picture()
+        if (!pic) pic = new Picture()
+        pic.data = picture.bytes
+        pic.mimeType = picture.contentType
+        pic.name = picture.name
         if (pic) {
             pic = pic.save(true)
+            if (!user.pictures) {
+                user.defaultPictureId = pic.id
+            }
+            user.pictures << pic
+            user.save()
             def message = ['pictureId': "${pic?.id}"]
             render message as JSON
         } else {

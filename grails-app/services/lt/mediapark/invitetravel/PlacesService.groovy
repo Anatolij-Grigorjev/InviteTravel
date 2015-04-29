@@ -43,6 +43,7 @@ class PlacesService {
                 }
             }
         }
+        log.debug "Resolved name ${name} to place ${place?.description}"
         place
     }
 

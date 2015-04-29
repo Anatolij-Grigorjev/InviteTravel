@@ -11,7 +11,8 @@ class UsersController {
         list: 'POST',
         update: 'POST',
         logout: 'GET',
-        index: 'GET'
+        index: 'GET',
+        delete: 'DELETE'
     ]
 
     def usersService
@@ -56,11 +57,19 @@ class UsersController {
                 rightLogin = loginService.&loginFB
                 break
         }
-        userAttrs['level'] = request.JSON.level
+        if (request.JSON.level) userAttrs['level'] = request.JSON.level
         userAttrs << request.JSON
         def userInfo = rightLogin(userAttrs)
-        def result = ['userId' : userInfo.id]
-        render([status: userInfo.fresh? 201 : 200], result) as JSON
+        //return empty JSON object instead of userId if no level supplied when asking for user
+        def result = [:]
+        if (userInfo) {
+            result << ['userId' : userInfo.userId]
+        } else {
+            result << ['message': "User with ${request.JSON.source} ID" +
+                    " ${request.JSON.userId} not yet known to system and the lack of a provided level did not make things" +
+                    " less awkward!"]
+        }
+        render result as JSON
     }
 
     def list = {
@@ -77,7 +86,20 @@ class UsersController {
             currUser.listedIds << user.id
             ConversionsHelper.userToListMap(user)
         }
-       render usersList as JSON
+        def usersMap = ['users':usersList]
+       render usersMap as JSON
+    }
+
+
+    def delete = {
+        def currUser = loginService.loggedInUsers[params.requestor]
+        if (!currUser) {
+            return render(status: 403)
+        }
+        //disable user validity since nobody minds keeping them around
+        currUser.valid = false
+        currUser.save()
+        loginService.logout(currUser.id)
     }
 
 }
