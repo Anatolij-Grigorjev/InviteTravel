@@ -1,6 +1,7 @@
 package lt.mediapark.invitetravel;
 
 import com.restfb.Facebook;
+import com.restfb.JsonMapper;
 
 /**
  * Created by anatolij on 04/05/15.
@@ -8,15 +9,56 @@ import com.restfb.Facebook;
 public class FacebookPicture {
 
     @Facebook
-    String url;
+    private String url;
 
     @Facebook
-    Integer width;
+    private Integer width;
 
     @Facebook
-    Integer height;
+    private Integer height;
 
     @Facebook(value = "is_silhouette")
-    Boolean isSilhouette;
+    private Boolean isSilhouette;
 
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public Integer getWidth() {
+        return width;
+    }
+
+    public void setWidth(Integer width) {
+        this.width = width;
+    }
+
+    public Integer getHeight() {
+        return height;
+    }
+
+    public void setHeight(Integer height) {
+        this.height = height;
+    }
+
+    public Boolean getIsSilhouette() {
+        return isSilhouette;
+    }
+
+    public void setIsSilhouette(Boolean isSilhouette) {
+        this.isSilhouette = isSilhouette;
+    }
+
+    @Override
+    public String toString() {
+        return "FacebookPicture{" +
+                "url='" + url + '\'' +
+                ", width=" + width +
+                ", height=" + height +
+                ", isSilhouette=" + isSilhouette +
+                '}';
+    }
 }

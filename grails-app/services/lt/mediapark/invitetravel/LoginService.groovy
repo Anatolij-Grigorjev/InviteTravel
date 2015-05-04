@@ -46,7 +46,8 @@ class LoginService {
                     }
                 }
                 //fetching profile picture
-                fetchFBObject(accessToken, 'me/picture?redirect=false&width=320&height=320', FacebookPicture.class) { FacebookPicture fbPicture ->
+                fetchFBObject(accessToken, 'me/picture?redirect=false&width=320&height=320', FacebookPictureHolder.class) { FacebookPictureHolder holder ->
+                    FacebookPicture fbPicture = holder.data
                     File avatar = downloadImage(fbPicture?.url)
                     if (avatar) {
                         Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png')

@@ -94,7 +94,6 @@ class BootStrap {
                 }
                 log.debug "Fetch result: ${result}"
                 handler(result)
-                log.debug "Handler done!"
             }
         }
     }
