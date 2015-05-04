@@ -22,9 +22,11 @@ class UsersService {
                 user.wantToVisit << Place.findOrSaveWhere([placeId: it.id, description: it.description])
             }
         }
+        //save before moving on to pictures
+        user.save()
         if (jsonMap.pictures) {
             user.pictures.clear();
-            user.pictures.addAll(jsonMap.pictures)
+            user.pictures.addAll(jsonMap.pictures.collect { Picture.get(it)})
         }
         user.defaultPictureId = user.pictures[0]?.id?: null;
 
@@ -37,7 +39,7 @@ class UsersService {
         }
         Closure placesCriteria = {
             if (jsonMap?.query) {
-                like('description', "%${jsonMap.query}%")
+                ilike('description', "%${jsonMap.query}%")
             }
             if (jsonMap?.place) {
                 like('placeId', "${jsonMap.place?.placeId}")
@@ -46,7 +48,7 @@ class UsersService {
         }
         String searchArea = jsonMap?.searchType == 0? "residence" : "wantToVisit";
         if (!user.listedIds) {user.listedIds << user.id}
-        User.createCriteria().list {
+        def theList = User.createCriteria().list {
             "${searchArea}"(placesCriteria)
             order('lastActive', 'desc')
             order('defaultPictureId', 'desc')
@@ -56,6 +58,7 @@ class UsersService {
                 'in'('id', user?.listedIds)
             }
         }
+        theList
     }
 
     def boolean userReady(def userId) {

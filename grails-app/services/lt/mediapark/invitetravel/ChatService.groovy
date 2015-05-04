@@ -27,7 +27,7 @@ class ChatService {
         }
         def requestorNum = Long.parseLong(requestorId)
         messages.each { it ->
-            if (requestorNum == it.to.id) {
+            if (requestorNum == it.to?.id) {
                 def altered = false
                 if (!it.received) {
                     it.received = new Date()
@@ -42,6 +42,19 @@ class ChatService {
                 }
             }
         }
+        messages
+    }
+
+    def getChatsList(def userId) {
+        def messages = ChatMessage.createCriteria().list {
+            or {
+                eq('from.id', Long.parseLong(userId))
+                eq('to.id', Long.parseLong(userId))
+            }
+            order('sent', 'desc')
+
+        }
+
         messages
     }
 
@@ -63,5 +76,6 @@ class ChatService {
                 }
             }
         }
+        message
     }
 }

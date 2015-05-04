@@ -1,6 +1,7 @@
 package lt.mediapark.invitetravel
 
 import grails.converters.JSON
+import lt.mediapark.invitetravel.utils.ConversionsHelper
 
 class ChatController {
 
@@ -9,38 +10,37 @@ class ChatController {
 
     static allowedMethods = [
             index: 'GET',
-            send: 'POST'
+            send: 'POST',
+            list: 'GET'
     ]
 
     def index = {
 
         List<ChatMessage> correspondence = chatService.getCorrespondence(params.id1, params.id2, params.requestor, new Date(params.time?:0L))
         def userMaps = correspondence.collect {
-            def map = [
-                    'text' : it.text,
-                    'fromId' : it.from.id,
-                    'fromPicId' : it.from.defaultPictureId,
-                    'toPicId' : it.to.defaultPictureId,
-                    'toId' : it.to.id,
-                    'sent' : it.sent.time,
-                    'read' : it.read,
-            ]
-            if (it.received) {
-                map << ['received' : it.received.time]
-            }
-            map
+            ConversionsHelper.messageToMap(it)
         }
-        render userMaps as JSON
+        def finMap = ['messages' : userMaps]
+        render finMap as JSON
     }
 
 
     def send = {
-        chatService.sendMessage(params.requestor, params.id, request.JSON.text)
-        render(status: 200)
+        def message = chatService.sendMessage(params.requestor, params.id, request.JSON.text)
+        def map = ConversionsHelper.messageToMap(message)
+        render map as JSON
     }
 
 
+    def list = {
 
+        List<ChatMessage> listMessages = chatService.getChatsList(params.requestor)
+        def map = listMessages.collect {
+            ConversionsHelper.messageToMap(it)
+        }
+        def finMap = ['messages' : map]
+        render finMap as JSON
+    }
 
 
 

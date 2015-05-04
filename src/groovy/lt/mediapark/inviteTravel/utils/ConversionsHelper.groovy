@@ -1,7 +1,8 @@
 package lt.mediapark.invitetravel.utils
 
-import lt.mediapark.invitetravel.User
+import lt.mediapark.invitetravel.ChatMessage
 import lt.mediapark.invitetravel.Place
+import lt.mediapark.invitetravel.User
 
 /**
  * Created by anatolij on 27/04/15.
@@ -27,6 +28,15 @@ class ConversionsHelper {
         map
     }
 
+    public static Map userToMessagePart(User user) {
+        def map = [:]
+        map['id'] = user?.id
+        map['picId'] = user?.defaultPictureId
+        map['name'] = user?.name
+        map['level'] = user?.level?.rank
+        map.findAll { it.value }
+    }
+
     public static Map placeToJSONMap(Place place) {
         def placeMap = null
         if (place) {
@@ -35,6 +45,18 @@ class ConversionsHelper {
             placeMap['description'] = place.description
         }
         placeMap
+    }
+
+
+    public static Map messageToMap(ChatMessage message) {
+        def map = [:]
+        map['text'] = message?.text
+        map['from'] = userToMessagePart(message?.from)
+        map['to'] = userToMessagePart(message?.to)
+        map['sent'] = message?.sent?.time
+        map['read'] = message?.read
+        map['received'] = message?.received?.time
+        map.findAll { it.value }
     }
 
 }

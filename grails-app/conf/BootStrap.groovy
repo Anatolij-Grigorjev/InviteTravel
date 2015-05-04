@@ -7,16 +7,11 @@ import com.relayrides.pushy.apns.util.SSLContextUtil
 import com.relayrides.pushy.apns.util.SimpleApnsPushNotification
 import com.relayrides.pushy.apns.util.TokenUtil
 import com.restfb.DefaultFacebookClient
-import com.restfb.FacebookClient
 import com.restfb.Parameter
 import com.restfb.Version
-import grails.converters.JSON
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
-import lt.mediapark.invitetravel.UserLevel
-import lt.mediapark.invitetravel.enums.UserLevel
-import lt.mediapark.invitetravel.enums.UserLevel
 import org.apache.commons.io.FileUtils
 
 import javax.net.ssl.SSLHandshakeException
@@ -73,23 +68,22 @@ class BootStrap {
 
             klass.metaClass.fetchFBObject = { def accessToken, String path, Class resultType, Closure handler ->
                 String[] objAndParams = path.split('\\?')
-                String newPath = objAndParams[0]/* + "&access_token=${accessToken}"*/
+                String newPath = objAndParams[0]
                 log.debug "Got pure object path: ${newPath}"
-//                log.debug " Using app secret ${FB_APP_SECRET}\n" +
-//                    " Searching path ${newPath}\n" +
-//                    " For class ${resultType}\n"
                 def paramsMap = [:]
                 if (objAndParams.length > 1) {
                     String params = objAndParams[1]
                     log.debug "Got params: ${params}"
-                    String[] nameValuePairs = params.split('=')
-                    for (int i = 0; i < nameValuePairs.length; i+=2) {
-                        paramsMap[nameValuePairs[i]] = nameValuePairs[i+1]
+                    def paramPairs = params.split('&')
+                    paramsMap = paramPairs.collectEntries { pair ->
+                        String[] nameValuePair = pair.split('=')
+                        [(nameValuePair[0]) : nameValuePair[1]]
                     }
-//                    log.debug "Got params map: ${paramsMap}"
+
+                    log.debug "Got params map: ${paramsMap}"
                 }
                 def fbClient = new DefaultFacebookClient(accessToken, FB_APP_SECRET, Version.VERSION_2_3)
-                def result = null;
+                def result;
                 if (paramsMap) {
                     def params = paramsMap.collect { it ->
                         Parameter.with(it.key, it.value)

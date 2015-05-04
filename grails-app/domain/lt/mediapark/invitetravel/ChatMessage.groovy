@@ -5,10 +5,9 @@ class ChatMessage {
     static constraints = {
         from nullable: false
         to nullable: false
-        text nullable: false
+        text nullable: false, maxSize: 8400
         read nullable: false
         sent nullable: false
-
     }
 
     User from

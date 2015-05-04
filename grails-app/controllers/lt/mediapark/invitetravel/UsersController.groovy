@@ -30,7 +30,7 @@ class UsersController {
 
     def update = {
         try {
-            def user = usersService.updateUser(params.requestor, request.JSON)
+            def user = usersService.updateUser(Long.parseLong(params.requestor), request.JSON)
             render(status: 200)
         } catch (Exception e) {
             log.warn('Failed to update user!', e)
@@ -73,7 +73,7 @@ class UsersController {
     }
 
     def list = {
-        def currUser = loginService.loggedInUsers[params.requestor]
+        def currUser = loginService.loggedInUsers[Long.parseLong(params.requestor)]
         if (!currUser) {
             return render(status: 403)
         }
@@ -92,7 +92,7 @@ class UsersController {
 
 
     def delete = {
-        def currUser = loginService.loggedInUsers[params.requestor]
+        def currUser = loginService.loggedInUsers[Long.parseLong(params.requestor)]
         if (!currUser) {
             return render(status: 403)
         }

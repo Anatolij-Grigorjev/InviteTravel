@@ -60,6 +60,7 @@ class DebugController {
                 user.lastActive = new Date()
                 if (!user.pictures) user.pictures.addAll(picIds.size() >= User.MAX_ACTIVE_PICTURES? picIds.subList(0, rnd.nextInt(User.MAX_ACTIVE_PICTURES) + 1) : picIds)
                 user.residence = placesService.getPlace(cities[rnd.nextInt(cities.size())])
+                log.debug "Making user ${user.dump()}"
                 user = user.save()
                 users << user
             }
@@ -69,7 +70,7 @@ class DebugController {
             dummyList << ConversionsHelper.userToListMap(it)
         }
         dummyList.sort(true) {it.lastActive}
-
-        render dummyList.reverse() as JSON
+        def dummyMap = ['users' : dummyList.reverse()]
+        render dummyMap as JSON
     }
 }
