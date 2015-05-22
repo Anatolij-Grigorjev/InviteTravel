@@ -6,6 +6,16 @@ class CommonFilters {
 
     def filters = {
 
+        printRequest(controller: '*', action: '*') {
+            before = {
+                if (request.JSON) {
+                    log.info("JSON REQUEST: ${request.JSON}")
+                } else {
+                    log.info("NON-JSON REQUEST! Headers: ${request.getHeaderNames().collect {request.getHeader(it)}}")
+                }
+            }
+        }
+
 //        validatePicture(controller: 'pictures', action: '(index|delete)') {
 //            before = {
 //                def id = params.id

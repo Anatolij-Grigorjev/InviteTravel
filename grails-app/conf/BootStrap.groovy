@@ -62,9 +62,7 @@ class BootStrap {
         grailsApplication.getAllArtefacts().each { klass ->
             addApnsMethods(klass)
             addHTTPMethods(klass)
-            klass.metaClass.FB_APP_SECRET = grails.restfb.app.secret
-            klass.metaClass.FB_APP_ID = grails.restfb.app.id
-            klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
+            addConstants(klass)
 
             klass.metaClass.fetchFBObject = { def accessToken, String path, Class resultType, Closure handler ->
                 String[] objAndParams = path.split('\\?')
@@ -98,20 +96,34 @@ class BootStrap {
         }
     }
 
+    private void addConstants(Class klass) {
+        klass.metaClass.FB_APP_SECRET = grails.restfb.app.secret
+        klass.metaClass.FB_APP_ID = grails.restfb.app.id
+        klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
+        klass.metaClass.APPLE_PAYMENT_LINK = grails.apple.subscription.pay
+        klass.metaClass.APPLE_PAYMENT_LINK_DEBUG = grails.apple.subscription.sandbox
+    }
+
 
     def addHTTPMethods(Class klass) {
-        klass.metaClass.static.viaHttp = { Method method, String link, Closure responseHandler ->
-
+        klass.metaClass.static.viaHttpGet = { String link, ContentType type = ContentType.JSON, Closure responseHandler ->
             def http = new HTTPBuilder(link)
-            http.request(method, ContentType.JSON) {
-
-                headers.Accept = 'application/json'
-
+            http.request(Method.GET, type) {
                 response.success = { resp, json ->
                     responseHandler(json)
                 }
             }
         }
+//        klass.metaClass.static.httpPostJson = { String link, def theJson, ContentType type = ContentType.JSON, Closure responseHandler ->
+//            def http = new HTTPBuilder(link)
+//            http.headers.'Accept-Encoding' = 'gzip,deflate,sdch'
+//            http.headers.'Content-Type' = 'text/plain;charset=UTF-8'
+//            http.post(body: theBody/*, requestContentType: type*/) { response, json ->
+//                    log.info("Status: ${response.statusLine}")
+//                    log.info("All of it: ${response.dump()}")
+//                    responseHandler(json)
+//            }
+//        }
 
         //curry the httpGet, httpPost, httpDelete, httpPut, httpHead methods
 //        Method.values().each { it ->
@@ -126,7 +138,7 @@ class BootStrap {
             String last = tokens[-1]
             def name = last.contains('.')? last :"${last}.png"
             //this returns an output stream
-            def file = new File(name)
+            def file = File.createTempFile(name, '')
             BufferedOutputStream fileStream = file.withOutputStream { out ->
                 out << new URL(address).openStream()
             }

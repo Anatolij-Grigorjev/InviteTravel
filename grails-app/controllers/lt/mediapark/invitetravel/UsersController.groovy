@@ -19,8 +19,9 @@ class UsersController {
     def loginService
 
     def index = {
-        def user = usersService.getUser(params.id)
+        def user = usersService.get(Long.parseLong(params.id), true)
         if (user) {
+
             def target = ConversionsHelper.userToMap(user)
             render target as JSON
         } else {
@@ -30,7 +31,7 @@ class UsersController {
 
     def update = {
         try {
-            def user = usersService.updateUser(Long.parseLong(params.requestor), request.JSON)
+            usersService.updateUser(Long.parseLong(params.requestor), request.JSON)
             render(status: 200)
         } catch (Exception e) {
             log.warn('Failed to update user!', e)
@@ -40,7 +41,7 @@ class UsersController {
     }
 
     def logout = {
-        usersService.logout(params.requestor)
+        loginService.logout(Long.parseLong(params.requestor))
         render(status: 200)
     }
 
@@ -73,7 +74,7 @@ class UsersController {
     }
 
     def list = {
-        def currUser = loginService.loggedInUsers[Long.parseLong(params.requestor)]
+        def currUser = usersService.get(Long.parseLong(params.requestor))
         if (!currUser) {
             return render(status: 403)
         }
@@ -84,15 +85,16 @@ class UsersController {
         //the JSON map has list parameters (is it fresh, what was the query, what places are we searching in user)
         def usersList = usersService.getUsersList(currUser, amount, request.JSON).collect { User user ->
             currUser.listedIds << user.id
-            ConversionsHelper.userToListMap(user)
+            user.refresh()
+            ConversionsHelper.userToListMap(user, currUser)
         }
-        def usersMap = ['users':usersList]
+        def usersMap = ['users' : usersList]
        render usersMap as JSON
     }
 
 
     def delete = {
-        def currUser = loginService.loggedInUsers[Long.parseLong(params.requestor)]
+        def currUser = usersService.get(Long.parseLong(params.requestor))
         if (!currUser) {
             return render(status: 403)
         }

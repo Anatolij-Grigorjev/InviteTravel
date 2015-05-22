@@ -1,8 +1,10 @@
 package lt.mediapark.invitetravel.utils
 
 import lt.mediapark.invitetravel.ChatMessage
+import lt.mediapark.invitetravel.Payment
 import lt.mediapark.invitetravel.Place
 import lt.mediapark.invitetravel.User
+import lt.mediapark.invitetravel.enums.SubscriptionType
 
 /**
  * Created by anatolij on 27/04/15.
@@ -14,17 +16,28 @@ class ConversionsHelper {
         map['id'         ] = user.id
         map['name'       ] = user.name
         map['description'] = user.description?:""
-        map['residence'  ] = ConversionsHelper.placeToJSONMap(user.residence)
+        map['residence'  ] = placeToJSONMap(user.residence)
         map['level'      ] = user.level.rank
-        map['wantToVisit'] = user.wantToVisit.collect { ConversionsHelper.placeToJSONMap(user) }
-        map['pictures'   ] = user.pictures.id
+        map['wantToVisit'] = user.wantToVisit.collect { placeToJSONMap(it) }
+        map['pictures'   ] = user.pictures.collectEntries {[(it.index) : it.id]}
         map['lastActive '] = user.lastActive.time
+        map['payments'   ] = paymentsMap(user.payments)
         map
     }
 
-    public static Map userToListMap(User user) {
+    public static Map paymentsMap(Map<String, Payment> payments) {
+        payments.collectEntries {["${SubscriptionType.getById(it.key)?.subLevel.rank}" : it.value?.subscriptionEnd.time]}
+    }
+
+    public static Map userToListMap(User user, User currUser = null) {
         def map = userToMap(user)
-        map['hasMessages'] = user.messagesToMe.any {!it.read}
+        map['hasMessages'] = {
+            boolean hasMessages
+            hasMessages = currUser?
+                    user.messagesFromMe.any {it.to == currUser && !it.read} :
+                    user.messagesToMe.any {!it.read}
+            hasMessages
+        }.call()
         map
     }
 
@@ -54,9 +67,11 @@ class ConversionsHelper {
         map['from'] = userToMessagePart(message?.from)
         map['to'] = userToMessagePart(message?.to)
         map['sent'] = message?.sent?.time
+        map['created'] = message?.created?.time
         map['read'] = message?.read
         map['received'] = message?.received?.time
-        map.findAll { it.value }
+        //there is a possible false boolean in there, gotta avoid removing it
+        map.findAll { (it.value != null) }
     }
 
 }

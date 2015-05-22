@@ -16,6 +16,11 @@ class UrlMappings {
             action = 'list'
         }
 
+        "/users/subscriptions/extend"{
+            controller = 'subscription'
+            action = 'extend'
+        }
+
         "/$controller/$id?"{
             constraints {
                 id matches: /\d+/

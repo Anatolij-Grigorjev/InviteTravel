@@ -112,6 +112,8 @@ environments {
         grails.restfb.app.secret = '3389596a5a29f9c94c3f57b2355153eb'
         grails.restfb.app.id = '397500593755474'
         grails.google.places.api.key = 'AIzaSyDOamAMzFhqBOYihbYsZRmfGSsUO9XOpWE'
+        grails.apple.subscription.pay = 'https://buy.itunes.apple.com/verifyReceipt'
+        grails.apple.subscription.sandbox = 'https://sandbox.itunes.apple.com/verifyReceipt'
     }
     production {
         grails.apns.p12.path = 'keystore.p12'
@@ -120,6 +122,8 @@ environments {
         grails.restfb.app.secret = '3389596a5a29f9c94c3f57b2355153eb'
         grails.restfb.app.id = '397500593755474'
         grails.google.places.api.key = 'AIzaSyDOamAMzFhqBOYihbYsZRmfGSsUO9XOpWE'
+        grails.apple.subscription.pay = 'https://buy.itunes.apple.com/verifyReceipt'
+        grails.apple.subscription.sandbox = 'https://sandbox.itunes.apple.com/verifyReceipt'
     }
 }
 

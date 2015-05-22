@@ -1,19 +1,20 @@
 package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
+import grails.util.Holders
 import lt.mediapark.invitetravel.enums.UserLevel
+import org.hibernate.criterion.Order
 
 @Transactional
 class UsersService {
 
     def loginService
 
-    def updateUser(def userId, Map jsonMap) {
+    def updateUser(Long userId, Map jsonMap) {
         //nice if user was already cached (also most probable, as you can only update yourself)
-        def user = loginService.loggedInUsers[userId]?:User.get(userId)
-
+        def user = get(userId)
+        user = user.lock()
         if (jsonMap.description) user.description = jsonMap.description
-        if (jsonMap.lastPayment) user.lastPayment = new Date(jsonMap.lastPayment)
         if (jsonMap.level) user.level = UserLevel.findForLevel(jsonMap.level)
         if (jsonMap.residence) user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
         if (jsonMap.wantToVisit) {
@@ -23,14 +24,13 @@ class UsersService {
             }
         }
         //save before moving on to pictures
-        user.save()
+        user = user.save()
         if (jsonMap.pictures) {
             user.pictures.clear();
-            user.pictures.addAll(jsonMap.pictures.collect { Picture.get(it)})
+            user.pictures.addAll(jsonMap.pictures.collect {Picture.get(it.value)});
         }
-        user.defaultPictureId = user.pictures[0]?.id?: null;
 
-        user.save()
+        user = user.save()
     }
 
     def getUsersList(User user, Integer amount, def jsonMap) {
@@ -42,7 +42,7 @@ class UsersService {
                 ilike('description', "%${jsonMap.query}%")
             }
             if (jsonMap?.place) {
-                like('placeId', "${jsonMap.place?.placeId}")
+                like('placeId', "${jsonMap.place?.id}")
                 like('description', "%${jsonMap.place?.description}%")
             }
         }
@@ -51,23 +51,35 @@ class UsersService {
         def theList = User.createCriteria().list {
             "${searchArea}"(placesCriteria)
             order('lastActive', 'desc')
-            order('defaultPictureId', 'desc')
+            order('pictures', 'desc')
+//            order('defaultPictureId', 'desc')
             setMaxResults(amount)
             eq('valid', true)
             not {
                 'in'('id', user?.listedIds)
             }
+            distinct('id')
         }
         theList
     }
 
     def boolean userReady(def userId) {
-        def user = loginService.loggedInUsers[userId]
+        def user = get(userId)
         user?.lastActive = new Date()
         user && User.exists(userId)
     }
 
-    def User getUser(def userId) {
-        loginService.loggedInUsers[userId]?: User.findWhere(valid: true, id: Long.parseLong(userId));
+    def User get(Long userId, boolean canBeOffline = false) {
+        log.info("User id ${userId} was requested,${canBeOffline? " " : " NOT "}OK to search storage...")
+        def user = loginService.loggedInUsers[(userId)]
+        if (user) {
+            log.info("Fetched ${userId} from cache!")
+            user = user.refresh()
+        }
+        if (!user && canBeOffline) {
+            log.info("Fetching ${userId} from storage!")
+            user = User.get(userId)
+        }
+        user
     }
 }

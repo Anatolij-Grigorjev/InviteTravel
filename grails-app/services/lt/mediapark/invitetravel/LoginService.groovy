@@ -1,6 +1,5 @@
 package lt.mediapark.invitetravel
 
-import com.restfb.Facebook
 import com.restfb.types.User as FBUser
 
 import grails.transaction.Transactional
@@ -11,7 +10,7 @@ class LoginService {
 
     def placesService
 
-    Map<?, User> loggedInUsers = [:]
+    Map<Long, User> loggedInUsers = Collections.synchronizedMap([:])
 
     def loginVK(def jsonMap) {
         //get VK stuff
@@ -29,7 +28,7 @@ class LoginService {
                 user.level = UserLevel.findForLevel(Integer.parseInt(jsonMap.level))
                 user.name = fbUser?.name
                 if (fbUser?.location) {
-                    user.residence = placesService.getPlace(fbUser?.location.name)
+                    user.residence = placesService.getPlace(fbUser?.location?.name)
                 } else {
                     log.warn("No location disclosed, attempting to resolve via locale ${fbUser?.locale}...")
                     try {
@@ -50,17 +49,17 @@ class LoginService {
                     FacebookPicture fbPicture = holder.data
                     File avatar = downloadImage(fbPicture?.url)
                     if (avatar) {
-                        Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png')
+                        Picture picture = new Picture(data: avatar.bytes, name: avatar.name, mimeType: 'image/png', index: 0)
                         picture = picture.save()
                         user.pictures << picture
-                        if (!user.defaultPictureId) user.defaultPictureId = picture.id
                     } else {
                         log.warn "User ${parsedFbId} did not have a picture to their profile!"
                     }
                 }
+                user = user.save()
             }
         } else if (!user.id) {
-            //user doesnt exist AND no level supplied
+            //user doesn't exist AND no level supplied
             return Collections.EMPTY_MAP
         }
         finishLogin(user)
@@ -68,13 +67,12 @@ class LoginService {
 
     private Map finishLogin(User user) {
         def result = [:]
-        result.fresh = !!user.id
         if (!user.level) {
             user.level = UserLevel.CANT_PAY
         }
         user.lastActive = new Date()
         user.valid = true
-        user.save()
+        user = user.save()
         result.userId = user.id
         log.info "Logging in user ${user}"
         loggedInUsers << [(user.id) : user]

@@ -43,12 +43,11 @@ class DebugController {
 
         def rnd = new Random()
 
-        int amount = rnd.nextInt(25)
+        int amount = rnd.nextInt(12)
 
         List<Map> dummyList = []
         def users = User.all
         def levels = UserLevel.values()
-        def picIds = Picture.all.id
         if (users.size() < amount) {
             (amount - users.size() + 1).times {
                 def user = new User()
@@ -58,15 +57,25 @@ class DebugController {
                 user.name = "Test Testinsky #${new Date().time}"
                 user."$fieldChoice" = Math.abs(rnd.nextLong())
                 user.lastActive = new Date()
-                if (!user.pictures) user.pictures.addAll(picIds.size() >= User.MAX_ACTIVE_PICTURES? picIds.subList(0, rnd.nextInt(User.MAX_ACTIVE_PICTURES) + 1) : picIds)
+                //add random pictures and places to user
                 user.residence = placesService.getPlace(cities[rnd.nextInt(cities.size())])
                 log.debug "Making user ${user.dump()}"
+                if (!user.pictures) {
+                    (1 + rnd.nextInt(User.MAX_ACTIVE_PICTURES - 1)).times {
+                        File image = downloadImage('http://lorempixel.com/320/320/')
+                        if (image) {
+                            Picture picture = new Picture(data: image.bytes, name: image.name, mimeType: 'image/png', index: user.firstFreeSpace())
+                            picture = picture.save()
+                            user.pictures << picture
+                        }
+                    }
+                }
                 user = user.save()
                 users << user
             }
         }
         users.each {
-            loginService.loggedInUsers << ["${it.id}": it]
+            loginService.loggedInUsers << [(it.id): it]
             dummyList << ConversionsHelper.userToListMap(it)
         }
         dummyList.sort(true) {it.lastActive}

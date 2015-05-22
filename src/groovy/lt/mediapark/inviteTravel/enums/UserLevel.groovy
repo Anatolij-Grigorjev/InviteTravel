@@ -7,6 +7,12 @@ enum UserLevel {
 
     CAN_PAY_FOR_TWO(2), CAN_PAY_FOR_ONE(1), CANT_PAY(0);
 
+    private static Map<UserLevel, List<UserLevel>> talkMatrix = [
+            (CANT_PAY): [CAN_PAY_FOR_TWO],
+            (CAN_PAY_FOR_ONE): [CAN_PAY_FOR_ONE, CAN_PAY_FOR_TWO],
+            (CAN_PAY_FOR_TWO): values() as List
+    ]
+
     private int rank
 
     public int getRank() {
@@ -18,11 +24,10 @@ enum UserLevel {
     }
 
     public boolean canTalkTo(UserLevel level) {
-        this.rank >= level?.rank
+        return talkMatrix[(this)].contains(level)
     }
 
     public static UserLevel findForLevel(int level) {
-        UserLevel.values().find { it.rank == level }
+        values().find { it.rank == level }
     }
-
 }

@@ -1,5 +1,6 @@
 package lt.mediapark.invitetravel
 
+import lt.mediapark.invitetravel.enums.SubscriptionType
 import lt.mediapark.invitetravel.enums.UserLevel
 
 class User {
@@ -19,12 +20,19 @@ class User {
             wantToVisit : Place,
             pictures : Picture,
             messagesToMe: ChatMessage,
-            messagesFromMe: ChatMessage
+            messagesFromMe: ChatMessage,
+            payments: Payment
     ]
 
     static mappedBy = [
             messagesToMe: "to",
             messagesFromMe: "from"
+    ]
+
+    static fetchMode = [
+            payments: 'eager',
+            wantToVisit: 'eager',
+            residence: 'eager'
     ]
 
     static transients = ['listedIds']
@@ -35,14 +43,66 @@ class User {
     String deviceToken
     Long userIdFb
     Long userIdVk
-    List<Place> wantToVisit
+    List<Place> wantToVisit = []
     UserLevel level
     List<Picture> pictures = []
-    List<ChatMessage> messagesToMe = []
-    List<ChatMessage> messagesFromMe = []
-    Date lastPayment
+    Set<ChatMessage> messagesToMe = []
+    Set<ChatMessage> messagesFromMe = []
+    Map<String, Payment> payments = [:]
     Date lastActive
     Boolean valid = true
-    Long defaultPictureId
     Set listedIds = []
+
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (!(o instanceof User)) return false
+
+        User user = (User) o
+
+        if (deviceToken != user?.deviceToken) return false
+        if (id !=          user?.id) return false
+        if (level !=       user?.level) return false
+        if (name !=        user?.name) return false
+        if (userIdFb !=    user?.userIdFb) return false
+        if (userIdVk !=    user?.userIdVk) return false
+        if (valid !=       user?.valid) return false
+        if (version !=     user?.version) return false
+
+        return true
+    }
+
+    boolean hasMessagesFrom(Long otherId) {
+        return this.messagesToMe?.any {it.from?.id == otherId && it.sent}
+    }
+
+    boolean activeSubMatchLevel() {
+        payments.findAll { SubscriptionType.getById(it.key).subLevel.equals(level) }.any{ it.value.valid }
+    }
+
+    int hashCode() {
+        int result
+        result = name.hashCode()
+        result = 31 * result + (deviceToken? deviceToken.hashCode() : 0)
+        result = 31 * result + (userIdFb? userIdFb.hashCode() : 0)
+        result = 31 * result + (userIdVk? userIdVk.hashCode() : 0)
+        result = 31 * result + (level? level.hashCode() : 0)
+        result = 31 * result + (valid? valid.hashCode() : 0)
+        result = 31 * result + (id? id.hashCode() : 0)
+        result = 31 * result + (version? version.hashCode() : 0)
+        return result
+    }
+
+    int firstFreeSpace() {
+        if (!pictures) {
+            return 0
+        }
+        def indices = pictures.index
+        def free = 0
+        while (indices.contains(free)) {free++}
+        free
+    }
+
+    public Long getDefaultPictureId() {
+        pictures.find {it.index == 0}?.id
+    }
 }

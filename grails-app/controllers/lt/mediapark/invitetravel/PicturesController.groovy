@@ -12,11 +12,14 @@ class PicturesController {
     ]
 
 
+    def usersService
+
+
     def index = {
-        def picture = Picture.get(params.id)
+        def picture = Picture.get(Long.parseLong(params.id))
         if (picture) {
-            response.contentType = 'application/octet-stream'
-            response.addHeader('Content-disposition', "attachment;filename=${picture.id}")
+            response.contentType = 'image/png'
+            response.addHeader('Content-disposition', "attachment;filename=${picture.id}.png")
 
             response.outputStream << new ByteArrayInputStream(picture.data)
         } else {
@@ -26,10 +29,31 @@ class PicturesController {
 
     def delete = {
 
-        def pictureId = params.id
+        def pictureId = Long.parseLong(params.id)
         def picture = Picture.get(pictureId)
-
+        def user = usersService.get(Long.parseLong(params.requestor))
         if (picture) {
+            if (picture.index == 0) {
+                if (user.pictures.size() == 1) {
+                    //this is default image and no other images available - cant delete, need avatar
+                    render (status: 403)
+                } else {
+                    //this default image and other images are available - make closes image default
+                    Picture newAlt = null
+                    int goodInd = 1
+                    while (!newAlt) {
+                        newAlt = user.pictures.find {it.index == goodInd}
+                        if (!newAlt) goodInd++
+                    }
+
+                    newAlt.index = 0
+                    newAlt.save()
+                    user.refresh()
+                 }
+            }
+            //this not default image or default image handled - nobody cares
+            user.pictures.remove(picture)
+            user.save()
             picture.delete(flush: true)
             render (status: 200)
         } else {
@@ -41,12 +65,11 @@ class PicturesController {
 
         CommonsMultipartFile picture = request.getFile('picture')
 
-        def user = User.get(params.requestor)
-        def replace = params.replace
+        def user = usersService.get(Long.parseLong(params.requestor))
+        int index = Integer.parseInt(params.index)?:0
 
         //either get or create a picture
-        Picture pic = replace? Picture.get(Long.parseLong(replace)) : new Picture()
-        if (!pic) pic = new Picture()
+        Picture pic = user.pictures.find {it.index == index}?: new Picture(index: index)
         pic.data = picture.bytes
         pic.mimeType = picture.contentType
         pic.name = picture.name
@@ -54,6 +77,7 @@ class PicturesController {
             pic = pic.save(true)
             if (!user.pictures) {
                 user.defaultPictureId = pic.id
+                pic.index = 0
             }
             user.pictures << pic
             user.save()
