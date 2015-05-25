@@ -50,8 +50,8 @@ class SubscriptionService {
                         } else {
                             user.payments << [(type.id) : payment]
                         }
-
                     }
+                    user.refresh()
                     return true
                 case 21007:
                     //this code means its a sandbox purchase but was sent to prod URL, needs rerouting

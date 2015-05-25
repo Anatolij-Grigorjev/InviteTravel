@@ -1,7 +1,4 @@
 package lt.mediapark.invitetravel.constants
-
-import groovy.transform.CompileStatic
-
 /**
  * Created by anatolij on 25/05/15.
  */

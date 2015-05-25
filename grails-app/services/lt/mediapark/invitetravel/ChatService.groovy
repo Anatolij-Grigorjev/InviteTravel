@@ -99,4 +99,19 @@ class ChatService {
         }
         message
     }
+
+
+    def refreshUserMessages(User user) {
+        user.payments.values().findAll { it.valid }
+        .each { payment ->
+            user.messagesFromMe.findAll { !it.sent }
+            .each { msg ->
+                if (payment.subscriptionType.subLevel.canTalkTo(msg.from.level)) {
+                    msg.sent = new Date()
+                    msg.save()
+                }
+            }
+        }
+        user.refresh()
+    }
 }

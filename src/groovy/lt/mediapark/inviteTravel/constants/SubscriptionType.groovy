@@ -1,5 +1,7 @@
 package lt.mediapark.invitetravel.constants
-import static lt.mediapark.invitetravel.constants.UserLevel.*;
+
+import static lt.mediapark.invitetravel.constants.UserLevel.CAN_PAY_FOR_ONE
+import static lt.mediapark.invitetravel.constants.UserLevel.CAN_PAY_FOR_TWO;
 
 /**
  * Created by anatolij on 18/05/15.
