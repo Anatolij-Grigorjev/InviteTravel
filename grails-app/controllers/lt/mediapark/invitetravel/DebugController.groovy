@@ -41,38 +41,33 @@ class DebugController {
 
     def list = {
 
-        def rnd = new Random()
-
-        int amount = rnd.nextInt(12)
-
         List<Map> dummyList = []
         def users = User.all
+        int newAmount = params.num? Integer.parseInt(params.num) : 25 - users.size() + 1
         def levels = UserLevel.values()
-        if (users.size() < amount) {
-            (amount - users.size() + 1).times {
-                def user = new User()
-                def fieldChoice = (rnd.nextBoolean()? 'userIdVk' : 'userIdFb' )
-                user.description = "This is a test user created using the Debug controller at ${new Date()}"
-                user.level = levels.toList()[rnd.nextInt(levels.size())]
-                user.name = "Test Testinsky #${new Date().time}"
-                user."$fieldChoice" = Math.abs(rnd.nextLong())
-                user.lastActive = new Date()
-                //add random pictures and places to user
-                user.residence = placesService.getPlace(cities[rnd.nextInt(cities.size())])
-                log.debug "Making user ${user.dump()}"
-                if (!user.pictures) {
-                    (1 + rnd.nextInt(User.MAX_ACTIVE_PICTURES - 1)).times {
-                        File image = downloadImage('http://lorempixel.com/320/320/')
-                        if (image) {
-                            Picture picture = new Picture(data: image.bytes, name: image.name, mimeType: 'image/png', index: user.firstFreeSpace())
-                            picture = picture.save()
-                            user.pictures << picture
-                        }
+        newAmount.times {
+            def user = new User()
+            def fieldChoice = (rnd.nextBoolean()? 'userIdVk' : 'userIdFb' )
+            user.description = "This is a test user created using the Debug controller at ${new Date()}"
+            user.level = levels.toList()[rnd.nextInt(levels.size())]
+            user.name = "Test Testinsky #${new Date().time}"
+            user."$fieldChoice" = Math.abs(rnd.nextLong())
+            user.lastActive = new Date()
+            //add random pictures and places to user
+            user.residence = placesService.getPlace(cities[rnd.nextInt(cities.size())])
+            log.debug "Making user ${user.dump()}"
+            if (!user.pictures) {
+                (1 + rnd.nextInt(User.MAX_ACTIVE_PICTURES - 1)).times {
+                    File image = downloadImage('http://lorempixel.com/320/320/')
+                    if (image) {
+                        Picture picture = new Picture(data: image.bytes, name: image.name, mimeType: 'image/png', index: user.firstFreeSpace())
+                        picture = picture.save()
+                        user.pictures << picture
                     }
                 }
-                user = user.save()
-                users << user
             }
+            user = user.save()
+            users << user
         }
         users.each {
             loginService.loggedInUsers << [(it.id): it]

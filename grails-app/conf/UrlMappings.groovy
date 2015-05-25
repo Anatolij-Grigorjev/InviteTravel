@@ -11,7 +11,7 @@ class UrlMappings {
             controller = 'debug'
             action = 'login'
         }
-        "/debug/list" {
+        "/debug/list/$num?" {
             controller ='debug'
             action = 'list'
         }
