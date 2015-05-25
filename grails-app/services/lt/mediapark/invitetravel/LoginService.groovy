@@ -1,7 +1,6 @@
 package lt.mediapark.invitetravel
 
 import com.restfb.types.User as FBUser
-
 import grails.transaction.Transactional
 import lt.mediapark.invitetravel.constants.UserLevel
 
@@ -25,7 +24,7 @@ class LoginService {
         //user is new
         if (!user.id && jsonMap.level) {
             fetchFBObject(accessToken, 'me?fields=locale,location,name,id', FBUser.class) { FBUser fbUser ->
-                user.level = UserLevel.findForLevel(Integer.parseInt(jsonMap.level))
+                user.level = UserLevel.findForLevel(jsonMap.level)
                 user.name = fbUser?.name
                 if (fbUser?.location) {
                     user.residence = placesService.getPlace(fbUser?.location?.name)

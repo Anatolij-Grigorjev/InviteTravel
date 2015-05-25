@@ -28,7 +28,7 @@ enum UserLevel {
     }
 
     public static UserLevel findForLevel(def level) {
-        if (!level) {
+        if (level == null) {
             return null
         }
         if (level instanceof Integer)
