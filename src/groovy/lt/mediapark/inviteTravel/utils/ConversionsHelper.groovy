@@ -1,5 +1,6 @@
 package lt.mediapark.invitetravel.utils
 
+import groovy.transform.CompileStatic
 import lt.mediapark.invitetravel.ChatMessage
 import lt.mediapark.invitetravel.Payment
 import lt.mediapark.invitetravel.Place
@@ -9,7 +10,9 @@ import lt.mediapark.invitetravel.enums.SubscriptionType
 /**
  * Created by anatolij on 27/04/15.
  */
+@CompileStatic
 class ConversionsHelper {
+
 
     public static Map userToMap(User user) {
         def map = [:]
@@ -51,7 +54,7 @@ class ConversionsHelper {
     }
 
     public static Map placeToJSONMap(Place place) {
-        def placeMap = null
+        Map placeMap = null
         if (place) {
             placeMap = [:]
             placeMap['id'] = place.placeId

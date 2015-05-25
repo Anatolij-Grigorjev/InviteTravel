@@ -31,8 +31,8 @@ class UsersController {
 
     def update = {
         try {
-            usersService.updateUser(Long.parseLong(params.requestor), request.JSON)
-            render(status: 200)
+            def user = usersService.updateUser(Long.parseLong(params.requestor), request.JSON)
+            render(ConversionsHelper.userToMap(user)) as JSON
         } catch (Exception e) {
             log.warn('Failed to update user!', e)
             def message = ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]

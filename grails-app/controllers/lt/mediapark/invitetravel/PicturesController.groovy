@@ -18,10 +18,14 @@ class PicturesController {
     def index = {
         def picture = Picture.get(Long.parseLong(params.id))
         if (picture) {
-            response.contentType = 'image/png'
-            response.addHeader('Content-disposition', "attachment;filename=${picture.id}.png")
+            response.contentType = 'image/jpeg'
+            response.setHeader('Content-disposition', "attachment;filename=${picture.id}.jpg")
+            response.contentLength = picture.data.length
 
             response.outputStream << new ByteArrayInputStream(picture.data)
+            response.outputStream.flush()
+
+            return null
         } else {
             render(status: 404)
         }

@@ -23,7 +23,6 @@ class ChatService {
                     eq('to.id', Long.parseLong(userId2))
                 }
             }
-            isNotNull('sent')
             le('created', latest)
             order('sent', 'asc')
         }

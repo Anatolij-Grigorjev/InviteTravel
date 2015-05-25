@@ -15,6 +15,7 @@ import groovyx.net.http.Method
 import org.apache.commons.io.FileUtils
 
 import javax.net.ssl.SSLHandshakeException
+import java.util.concurrent.atomic.AtomicLong
 
 class BootStrap {
 
@@ -23,6 +24,7 @@ class BootStrap {
 
     PushManager pushManager
 
+    AtomicLong lng = new AtomicLong(1)
 
     def init = { servletContext ->
 
@@ -134,16 +136,10 @@ class BootStrap {
             if (!address) {
                 return null
             }
-            def tokens = address.tokenize('/')
-            String last = tokens[-1]
-            def name = last.contains('.')? last :"${last}.png"
+            def name = "image-${lng.incrementAndGet()}.png"
             //this returns an output stream
             def file = File.createTempFile(name, '')
-            BufferedOutputStream fileStream = file.withOutputStream { out ->
-                out << new URL(address).openStream()
-            }
-
-            FileUtils.writeByteArrayToFile(file, fileStream.@buf)
+            file.bytes = new URL(address).bytes
             file
         }
     }

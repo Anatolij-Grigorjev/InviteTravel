@@ -2,7 +2,13 @@ package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
 import groovy.transform.Synchronized
+import groovy.transform.WithWriteLock
 import lt.mediapark.invitetravel.enums.PlacesResponse
+import org.hibernate.Session
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Propagation
+
+import java.util.concurrent.locks.ReentrantLock
 
 @Transactional
 class PlacesService {
@@ -13,7 +19,8 @@ class PlacesService {
      * @param name the query
      * @return the (new) place
      */
-    @Synchronized
+    @WithWriteLock
+    @Transactional(propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     def Place getPlace(String name) {
         Place place = null
         if (name) {
@@ -26,9 +33,25 @@ class PlacesService {
                         List results = json.predictions
                         if (results) {
                             Map placeMap = results[0]
-                            log.info("Gonna find or save for place_id ${placeMap.place_id} and descritpion ${placeMap.description}")
-                            place = Place.findOrSaveWhere(placeId: "${placeMap.place_id}", description: "${placeMap.description}")
-                            log.info("Got place ${place}")
+                            try {
+                                place = Place.findOrSaveWhere(placeId: placeMap.place_id, description: placeMap.description)
+                            } catch (e) {
+                                log.error(e.message, e)
+                                Place.withNewTransaction {
+                                    place = Place.findOrCreateByPlaceId(placeMap.place_id?.toString())
+                                    if (!place.id || !place.description) {
+                                        place.description = placeMap.description
+                                        try {
+                                            place = place.save()
+                                        } catch (ex) {
+                                            log.error(ex.message, ex)
+                                            Place.withNewTransaction {
+                                                place = Place.findByPlaceId(placeMap.place_id?.toString())
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                         break
                     case PlacesResponse.ZERO_RESULTS:

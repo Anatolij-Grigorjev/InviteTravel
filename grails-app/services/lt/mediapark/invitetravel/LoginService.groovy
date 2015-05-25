@@ -4,6 +4,7 @@ import com.restfb.types.User as FBUser
 
 import grails.transaction.Transactional
 import lt.mediapark.invitetravel.enums.UserLevel
+import org.springframework.transaction.annotation.Propagation
 
 @Transactional
 class LoginService {
@@ -72,8 +73,9 @@ class LoginService {
         }
         user.lastActive = new Date()
         user.valid = true
-        user = user.save()
+        user = user.save(flush: true)
         result.userId = user.id
+        user.refresh()
         log.info "Logging in user ${user}"
         loggedInUsers << [(user.id) : user]
         result

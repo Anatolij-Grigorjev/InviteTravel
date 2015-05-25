@@ -27,7 +27,14 @@ enum UserLevel {
         return talkMatrix[(this)].contains(level)
     }
 
-    public static UserLevel findForLevel(int level) {
-        values().find { it.rank == level }
+    public static UserLevel findForLevel(def level) {
+        if (!level) {
+            return null
+        }
+        if (level instanceof Integer)
+            return values().find { it.rank == level }
+        if (level instanceof String)
+            return findForLevel(Integer.parseInt(level))
+        return findForLevel(level.toString())
     }
 }

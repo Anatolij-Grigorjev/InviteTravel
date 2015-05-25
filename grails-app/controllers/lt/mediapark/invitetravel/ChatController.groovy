@@ -16,7 +16,7 @@ class ChatController {
 
     def index = {
 
-        List<ChatMessage> correspondence = chatService.getCorrespondence(params.id1, params.id2, params.requestor, (params.time? new Date(Long.parseLong(params.time)):new Date()))
+        Set<ChatMessage> correspondence = chatService.getCorrespondence(params.id1, params.id2, params.requestor, (params.time? new Date(Long.parseLong(params.time)):new Date()))
         def userMaps = correspondence.collect {
             ConversionsHelper.messageToMap(it)
         }

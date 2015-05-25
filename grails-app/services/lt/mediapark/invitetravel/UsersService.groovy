@@ -13,7 +13,7 @@ class UsersService {
     def updateUser(Long userId, Map jsonMap) {
         //nice if user was already cached (also most probable, as you can only update yourself)
         def user = get(userId)
-        user = user.lock()
+//        user = user.lock()
         if (jsonMap.description) user.description = jsonMap.description
         if (jsonMap.level) user.level = UserLevel.findForLevel(jsonMap.level)
         if (jsonMap.residence) user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
@@ -30,7 +30,8 @@ class UsersService {
             user.pictures.addAll(jsonMap.pictures.collect {Picture.get(it.value)});
         }
 
-        user = user.save()
+        user = user.save(flush: true)
+        user
     }
 
     def getUsersList(User user, Integer amount, def jsonMap) {
@@ -58,9 +59,8 @@ class UsersService {
             not {
                 'in'('id', user?.listedIds)
             }
-            distinct('id')
         }
-        theList
+        theList as Set
     }
 
     def boolean userReady(def userId) {
