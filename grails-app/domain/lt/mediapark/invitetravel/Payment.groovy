@@ -1,6 +1,6 @@
 package lt.mediapark.invitetravel
 
-import lt.mediapark.invitetravel.enums.SubscriptionType
+import lt.mediapark.invitetravel.constants.SubscriptionType
 
 class Payment {
 

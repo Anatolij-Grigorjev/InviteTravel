@@ -1,7 +1,7 @@
 package lt.mediapark.invitetravel
 
-import lt.mediapark.invitetravel.enums.SubscriptionType
-import lt.mediapark.invitetravel.enums.UserLevel
+import lt.mediapark.invitetravel.constants.SubscriptionType
+import lt.mediapark.invitetravel.constants.UserLevel
 
 class User {
 

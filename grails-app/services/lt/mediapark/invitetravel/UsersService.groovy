@@ -1,9 +1,7 @@
 package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
-import grails.util.Holders
-import lt.mediapark.invitetravel.enums.UserLevel
-import org.hibernate.criterion.Order
+import lt.mediapark.invitetravel.constants.UserLevel
 
 @Transactional
 class UsersService {

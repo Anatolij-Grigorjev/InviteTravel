@@ -1,4 +1,4 @@
-package lt.mediapark.invitetravel.enums
+package lt.mediapark.invitetravel.constants
 
 /**
  * Created by anatolij on 27/03/15.

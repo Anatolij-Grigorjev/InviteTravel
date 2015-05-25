@@ -2,9 +2,8 @@ package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
 import groovy.json.JsonSlurper
-import groovyx.net.http.ContentType
-import groovyx.net.http.Method
-import lt.mediapark.invitetravel.enums.SubscriptionType
+import lt.mediapark.invitetravel.constants.SubscriptionType
+import lt.mediapark.invitetravel.constants.SysConst
 import org.json.simple.JSONObject
 
 @Transactional
@@ -57,12 +56,12 @@ class SubscriptionService {
                 case 21007:
                     //this code means its a sandbox purchase but was sent to prod URL, needs rerouting
                     log.info('Production link used for sandbox purchase! rerouting...')
-                    return updateUserSubscription(payload, user, APPLE_PAYMENT_LINK_DEBUG)
+                    return updateUserSubscription(payload, user, SysConst.APPLE_PAYMENT_LINK_DEBUG)
                 default:
                     //other codes are bad
                     log.error("Something went terribly wrong while processing the receipt! " +
                             "The status we got was ${json.status}\nHere is the payload: ${payload}" +
-                            "\nHere is the link: ${paymentLink}\nThis was the user: ${user}\n" +
+                            "\nHere is the link: ${url}\nThis was the user: ${user}\n" +
                             "This is the entire response: ${json.dump()}")
                     return false;
             }

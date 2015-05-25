@@ -1,7 +1,7 @@
 package lt.mediapark.invitetravel
 
 import grails.converters.JSON
-import lt.mediapark.invitetravel.enums.LoginType
+import lt.mediapark.invitetravel.constants.LoginType
 import lt.mediapark.invitetravel.utils.ConversionsHelper
 
 class UsersController {

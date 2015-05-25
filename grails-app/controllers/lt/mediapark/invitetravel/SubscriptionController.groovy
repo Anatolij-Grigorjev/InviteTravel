@@ -1,6 +1,7 @@
 package lt.mediapark.invitetravel
 
 import grails.converters.JSON
+import lt.mediapark.invitetravel.constants.SysConst
 import lt.mediapark.invitetravel.utils.ConversionsHelper
 import org.json.simple.JSONObject
 import org.springframework.web.multipart.commons.CommonsMultipartFile
@@ -20,7 +21,7 @@ class SubscriptionController {
         User user = usersService.get(userId)
         //sending the right JSON object
         String payload = request.JSON.payload
-        boolean allGood = subscriptionService.updateUserSubscription(payload, user, APPLE_PAYMENT_LINK)
+        boolean allGood = subscriptionService.updateUserSubscription(payload, user, SysConst.APPLE_PAYMENT_LINK)
         if (allGood) {
             Map resultMap = ConversionsHelper.paymentsMap(user.payments)
             render resultMap as JSON

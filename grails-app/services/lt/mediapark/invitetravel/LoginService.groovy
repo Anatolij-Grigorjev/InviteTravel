@@ -3,8 +3,7 @@ package lt.mediapark.invitetravel
 import com.restfb.types.User as FBUser
 
 import grails.transaction.Transactional
-import lt.mediapark.invitetravel.enums.UserLevel
-import org.springframework.transaction.annotation.Propagation
+import lt.mediapark.invitetravel.constants.UserLevel
 
 @Transactional
 class LoginService {

@@ -5,7 +5,7 @@ import lt.mediapark.invitetravel.ChatMessage
 import lt.mediapark.invitetravel.Payment
 import lt.mediapark.invitetravel.Place
 import lt.mediapark.invitetravel.User
-import lt.mediapark.invitetravel.enums.SubscriptionType
+import lt.mediapark.invitetravel.constants.SubscriptionType
 
 /**
  * Created by anatolij on 27/04/15.
@@ -50,7 +50,7 @@ class ConversionsHelper {
         map['picId'] = user?.defaultPictureId
         map['name'] = user?.name
         map['level'] = user?.level?.rank
-        map.findAll { it.value }
+        map.findAll { it.value != null }
     }
 
     public static Map placeToJSONMap(Place place) {

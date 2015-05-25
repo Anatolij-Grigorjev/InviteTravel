@@ -12,7 +12,7 @@ import com.restfb.Version
 import groovyx.net.http.ContentType
 import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
-import org.apache.commons.io.FileUtils
+import lt.mediapark.invitetravel.constants.SysConst
 
 import javax.net.ssl.SSLHandshakeException
 import java.util.concurrent.atomic.AtomicLong
@@ -44,8 +44,7 @@ class BootStrap {
             }
         }
         try {
-            def sslCtx = SSLContextUtil.createDefaultSSLContext(grails.apns.p12.path,
-                    grails.apns.p12.password)
+            def sslCtx = SSLContextUtil.createDefaultSSLContext((String)grails.apns.p12.path, (String)grails.apns.p12.password)
             pushManager = new PushManager<ApnsPushNotification>(
                     apnsEnv,
                     sslCtx,
@@ -53,20 +52,20 @@ class BootStrap {
                     null, //executor service
                     null, //blocking queue
                     managerConfig,
-                    grails.apns.manager.name);
-
+                    (String)grails.apns.manager.name);
             registerListeners()
             pushManager.start()
         } catch (Exception e) {
             e.printStackTrace()
         }
+        //system constants
+        SysConst.init(grails)
 
         grailsApplication.getAllArtefacts().each { klass ->
             addApnsMethods(klass)
             addHTTPMethods(klass)
-            addConstants(klass)
 
-            klass.metaClass.fetchFBObject = { def accessToken, String path, Class resultType, Closure handler ->
+            klass.metaClass.fetchFBObject = { String accessToken, String path, Class resultType, Closure handler ->
                 String[] objAndParams = path.split('\\?')
                 String newPath = objAndParams[0]
                 log.debug "Got pure object path: ${newPath}"
@@ -82,7 +81,7 @@ class BootStrap {
 
                     log.debug "Got params map: ${paramsMap}"
                 }
-                def fbClient = new DefaultFacebookClient(accessToken, FB_APP_SECRET, Version.VERSION_2_3)
+                def fbClient = new DefaultFacebookClient(accessToken, SysConst.FB_APP_SECRET, Version.VERSION_2_3)
                 def result;
                 if (paramsMap) {
                     def params = paramsMap.collect { it ->
@@ -97,15 +96,6 @@ class BootStrap {
             }
         }
     }
-
-    private void addConstants(Class klass) {
-        klass.metaClass.FB_APP_SECRET = grails.restfb.app.secret
-        klass.metaClass.FB_APP_ID = grails.restfb.app.id
-        klass.metaClass.PLACES_API_KEY = grails.google.places.api.key
-        klass.metaClass.APPLE_PAYMENT_LINK = grails.apple.subscription.pay
-        klass.metaClass.APPLE_PAYMENT_LINK_DEBUG = grails.apple.subscription.sandbox
-    }
-
 
     def addHTTPMethods(Class klass) {
         klass.metaClass.static.viaHttpGet = { String link, ContentType type = ContentType.JSON, Closure responseHandler ->
@@ -185,7 +175,7 @@ class BootStrap {
 
             if (cause instanceof SSLHandshakeException) {
                 //need to shutdown manager since no more SSL
-                log.fatal "SSL Certificate expired/invalid (${cause.message})! Shuttind dow push service..."
+                log.fatal "SSL Certificate expired/invalid (${cause.message})! Shutting down push service..."
                 pushManager.shutDown()
             }
 

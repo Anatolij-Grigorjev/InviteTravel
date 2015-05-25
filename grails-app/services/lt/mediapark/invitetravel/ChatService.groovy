@@ -8,19 +8,22 @@ class ChatService {
 
     def usersService
 
-    private static final int MAX_MESSAGE_CHARS = 30
+    private static final int MAX_MESSAGE_CHARS = 45
 
     def getCorrespondence(def userId1, def userId2, def requestorId, Date latest) {
+
+        Long userId1Num = Long.parseLong(userId1)
+        Long userId2Num = Long.parseLong(userId2)
 
         def messages = ChatMessage.createCriteria().list {
             or {
                 and {
-                    eq('from.id', Long.parseLong(userId2))
-                    eq('to.id', Long.parseLong(userId1))
+                    eq('from.id', userId2Num)
+                    eq('to.id', userId1Num)
                 }
                 and {
-                    eq('from.id', Long.parseLong(userId1))
-                    eq('to.id', Long.parseLong(userId2))
+                    eq('from.id', userId1Num)
+                    eq('to.id', userId2Num)
                 }
             }
             le('created', latest)
@@ -29,7 +32,8 @@ class ChatService {
         def requestorNum = Long.parseLong(requestorId)
         //exclude messages that don't allow levels to talk
         // (assuming the levels never talked before)
-        messages.each { it ->
+        messages = messages.findAll { msg -> requestorNum == msg.from.id || !!msg.sent }
+        .each { it ->
             if (requestorNum == it.to?.id) {
                 def altered = false
                 if (!it.to?.messagesToMe.contains(it)) {

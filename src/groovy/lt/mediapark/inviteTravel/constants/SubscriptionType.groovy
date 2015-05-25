@@ -1,5 +1,5 @@
-package lt.mediapark.invitetravel.enums
-import static lt.mediapark.invitetravel.enums.UserLevel.*;
+package lt.mediapark.invitetravel.constants
+import static lt.mediapark.invitetravel.constants.UserLevel.*;
 
 /**
  * Created by anatolij on 18/05/15.

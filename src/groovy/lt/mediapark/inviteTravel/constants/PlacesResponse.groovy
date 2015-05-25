@@ -1,4 +1,4 @@
-package lt.mediapark.invitetravel.enums
+package lt.mediapark.invitetravel.constants
 
 /**
  * Response codes from the Google Places API

@@ -3,7 +3,8 @@ package lt.mediapark.invitetravel
 import grails.transaction.Transactional
 import groovy.transform.Synchronized
 import groovy.transform.WithWriteLock
-import lt.mediapark.invitetravel.enums.PlacesResponse
+import lt.mediapark.invitetravel.constants.PlacesResponse
+import lt.mediapark.invitetravel.constants.SysConst
 import org.hibernate.Session
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Propagation
@@ -24,7 +25,7 @@ class PlacesService {
     def Place getPlace(String name) {
         Place place = null
         if (name) {
-            def url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${name}&types=(regions)&language=en_US&key=${PLACES_API_KEY}"
+            def url = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${name}&types=(regions)&language=en_US&key=${SysConst.PLACES_API_KEY}"
             viaHttpGet(url) { Map json ->
                 log.info("Response code: ${json.status}")
                 def code = PlacesResponse.valueOf(json.status)
@@ -61,7 +62,7 @@ class PlacesService {
                         log.warn("Daily query limit reached, try again later.")
                         break
                     case PlacesResponse.REQUEST_DENIED:
-                        log.warn("The Places API request was denied, possibly bad key ${PLACES_API_KEY}.")
+                        log.warn("The Places API request was denied, possibly bad key ${SysConst.PLACES_API_KEY}.")
                         break
                     case PlacesResponse.INVALID_REQUEST:
                         log.warn("The supplied URL ${url} was invalid...")
