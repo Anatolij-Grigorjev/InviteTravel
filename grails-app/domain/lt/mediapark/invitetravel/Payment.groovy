@@ -20,7 +20,7 @@ class Payment {
     SubscriptionType subscriptionType
 
     public boolean isValid() {
-        return subscriptionEnd? subscriptionEnd <= new Date() : false
+        return subscriptionEnd? subscriptionEnd >= new Date() : false
     }
 
     boolean equals(o) {

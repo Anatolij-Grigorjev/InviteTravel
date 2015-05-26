@@ -49,5 +49,6 @@ class UrlMappings {
 
         "/" (view: 'index')
         "500"(view:'/error')
+        "403"(view: '/unauth')
 	}
 }

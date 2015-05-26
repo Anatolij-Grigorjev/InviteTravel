@@ -1,15 +1,11 @@
 package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
-import groovy.transform.Synchronized
 import groovy.transform.WithWriteLock
 import lt.mediapark.invitetravel.constants.PlacesResponse
 import lt.mediapark.invitetravel.constants.SysConst
-import org.hibernate.Session
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Propagation
-
-import java.util.concurrent.locks.ReentrantLock
 
 @Transactional
 class PlacesService {

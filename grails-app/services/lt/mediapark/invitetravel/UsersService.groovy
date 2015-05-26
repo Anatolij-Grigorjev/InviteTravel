@@ -2,15 +2,16 @@ package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
 import lt.mediapark.invitetravel.constants.UserLevel
+import org.hibernate.NullPrecedence
+import org.hibernate.criterion.Order
+
 
 @Transactional
 class UsersService {
 
     def loginService
 
-    def updateUser(Long userId, Map jsonMap) {
-        //nice if user was already cached (also most probable, as you can only update yourself)
-        def user = get(userId)
+    def updateUser(User user, Map jsonMap) {
 //        user = user.lock()
         if (jsonMap.description) user.description = jsonMap.description
         if (jsonMap.level) user.level = UserLevel.findForLevel(jsonMap.level)
@@ -22,13 +23,14 @@ class UsersService {
             }
         }
         //save before moving on to pictures
-        user = user.save()
+//        user = user.save()
         if (jsonMap.pictures) {
             user.pictures.clear();
             user.pictures.addAll(jsonMap.pictures.collect {Picture.get(it.value)});
         }
 
         user = user.save(flush: true)
+        log.info("User these days: ${user.dump()}")
         user
     }
 
@@ -42,7 +44,7 @@ class UsersService {
             }
             if (jsonMap?.place) {
                 like('placeId', "${jsonMap.place?.id}")
-                like('description', "%${jsonMap.place?.description}%")
+                ilike('description', "%${jsonMap.place?.description}%")
             }
         }
         String searchArea = jsonMap?.searchType == 0? "residence" : "wantToVisit";
@@ -50,8 +52,7 @@ class UsersService {
         def theList = User.createCriteria().list {
             "${searchArea}"(placesCriteria)
             order('lastActive', 'desc')
-            order('pictures', 'desc')
-//            order('defaultPictureId', 'desc')
+            order(Order.desc('pictures').nulls(NullPrecedence.LAST))
             setMaxResults(amount)
             eq('valid', true)
             not {
@@ -72,11 +73,10 @@ class UsersService {
         def user = loginService.loggedInUsers[(userId)]
         if (user) {
             log.info("Fetched ${userId} from cache!")
-            user = user.refresh()
         }
         if (!user && canBeOffline) {
             log.info("Fetching ${userId} from storage!")
-            user = User.get(userId)
+            user = User.findById(userId)
         }
         user
     }

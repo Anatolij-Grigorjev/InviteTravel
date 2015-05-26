@@ -2,7 +2,6 @@ package lt.mediapark.invitetravel
 
 import grails.converters.JSON
 import lt.mediapark.invitetravel.constants.LoginType
-import lt.mediapark.invitetravel.utils.ConversionsHelper
 
 class UsersController {
 
@@ -17,12 +16,12 @@ class UsersController {
 
     def usersService
     def loginService
+    def JSONConversionService
 
     def index = {
         def user = usersService.get(Long.parseLong(params.id), true)
         if (user) {
-
-            def target = ConversionsHelper.userToMap(user)
+            def target = JSONConversionService.userToMap(user)
             render target as JSON
         } else {
             render (status: 404)
@@ -31,8 +30,9 @@ class UsersController {
 
     def update = {
         try {
-            def user = usersService.updateUser(Long.parseLong(params.requestor), request.JSON)
-            render(ConversionsHelper.userToMap(user)) as JSON
+            def user = usersService.updateUser((User)params.currUser, request.JSON)
+            def userMap = JSONConversionService.userToMap(user)
+            render userMap as JSON
         } catch (Exception e) {
             log.warn('Failed to update user!', e)
             def message = ['message' : "Update failed for user ${params.requestor}! Reason: ${e.message}"]
@@ -41,7 +41,7 @@ class UsersController {
     }
 
     def logout = {
-        loginService.logout(Long.parseLong(params.requestor))
+        loginService.logout(params.currUser.id)
         render(status: 200)
     }
 
@@ -74,10 +74,7 @@ class UsersController {
     }
 
     def list = {
-        def currUser = usersService.get(Long.parseLong(params.requestor))
-        if (!currUser) {
-            return render(status: 403)
-        }
+        User currUser = params.currUser
         def amount = Integer.parseInt(params.id)
         // in this context the id parameter is used to indicate return list size
         //this is more convenient than defining a whole new url mapping, since old
@@ -85,8 +82,8 @@ class UsersController {
         //the JSON map has list parameters (is it fresh, what was the query, what places are we searching in user)
         def usersList = usersService.getUsersList(currUser, amount, request.JSON).collect { User user ->
             currUser.listedIds << user.id
-            user.refresh()
-            ConversionsHelper.userToListMap(user, currUser)
+//            user.refresh()
+            JSONConversionService.userToListMap(user, currUser)
         }
         def usersMap = ['users' : usersList]
        render usersMap as JSON
@@ -94,7 +91,7 @@ class UsersController {
 
 
     def delete = {
-        def currUser = usersService.get(Long.parseLong(params.requestor))
+        User currUser = params.currUser
         if (!currUser) {
             return render(status: 403)
         }

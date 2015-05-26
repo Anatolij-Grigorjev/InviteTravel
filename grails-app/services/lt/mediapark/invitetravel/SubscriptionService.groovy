@@ -25,33 +25,36 @@ class SubscriptionService {
                     //to naturally merge the map and contain only most recent purchases
                     purchases.sort(true) { it.original_purchase_date_ms }
                     def purchasesMap = purchases.collectEntries { [(it.product_id) : it] }
-                    purchasesMap.each { entry ->
-                        long initialMillis = Long.parseLong(entry.value.original_purchase_date_ms)
-                        long startOfDay = initialMillis - (initialMillis % MILLIS_IN_A_DAY)
-                        def subStart = new Date(startOfDay)
-                        SubscriptionType type = SubscriptionType.getById(String.valueOf(entry.key))
-                        c.setTime(subStart)
-                        c.add(Calendar.MONTH, type.months)
-                        def subEnd = c.getTime()
-                        def payment = new Payment(
-                                customer: user
-                                , transactionId: entry.value.transaction_id
-                                , subscriptionType: type
-                                , subscriptionStart: subStart
-                                , subscriptionEnd: subEnd
-                        )
-                        payment.save()
-                        //merge into user payments list
-                        if (user.payments[(type.id)]) {
-                            //this type has an active payment, need to merge the dates
-                            Date prevEnd = user.payments[(type.id)].subscriptionEnd
-                            Long diff = (payment.subscriptionEnd.time > prevEnd.time) ? payment.subscriptionEnd.time - prevEnd.time : 0
-                            user.payments[(type.id)].subscriptionEnd = new Date(prevEnd.time + diff)
-                        } else {
-                            user.payments << [(type.id) : payment]
+                    User.withSession { session ->
+                        purchasesMap.each { entry ->
+                            long initialMillis = Long.parseLong(entry.value.original_purchase_date_ms)
+                            long startOfDay = initialMillis - (initialMillis % MILLIS_IN_A_DAY)
+                            def subStart = new Date(startOfDay)
+                            SubscriptionType type = SubscriptionType.getById(String.valueOf(entry.key))
+                            c.setTime(subStart)
+                            c.add(Calendar.MONTH, type.months)
+                            def subEnd = c.getTime()
+                            def payment = new Payment(
+                                    customer: user
+                                    , transactionId: entry.value.transaction_id
+                                    , subscriptionType: type
+                                    , subscriptionStart: subStart
+                                    , subscriptionEnd: subEnd
+                            )
+                            payment.save()
+                            //merge into user payments list
+                            if (user.payments[(type.id)]) {
+                                //this type has an active payment, need to merge the dates
+                                Date prevEnd = user.payments[(type.id)].subscriptionEnd
+                                Long diff = (payment.subscriptionEnd.time > prevEnd.time) ? payment.subscriptionEnd.time - prevEnd.time : 0
+                                user.payments[(type.id)].subscriptionEnd = new Date(prevEnd.time + diff)
+                            } else {
+                                user.payments << [(type.id) : payment]
+                            }
                         }
+                        user.save()
+                        session.flush()
                     }
-                    user.refresh()
                     return true
                 case 21007:
                     //this code means its a sandbox purchase but was sent to prod URL, needs rerouting

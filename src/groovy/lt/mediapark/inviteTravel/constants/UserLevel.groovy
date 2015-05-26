@@ -31,6 +31,7 @@ enum UserLevel {
         if (level == null) {
             return null
         }
+        println("Dealing with level ${level} of type ${level.class.name}")
         if (level instanceof Integer)
             return values().find { it.rank == level }
         if (level instanceof String)

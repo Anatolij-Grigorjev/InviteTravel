@@ -3,7 +3,6 @@ package lt.mediapark.invitetravel
 import grails.converters.JSON
 import lt.mediapark.invitetravel.constants.Source
 import lt.mediapark.invitetravel.constants.UserLevel
-import lt.mediapark.invitetravel.utils.ConversionsHelper
 
 class DebugController {
 
@@ -16,6 +15,7 @@ class DebugController {
 
     def loginService
     def placesService
+    def JSONConversionService
 
     def login = {
 
@@ -45,6 +45,7 @@ class DebugController {
         def users = User.all
         int newAmount = params.num? Integer.parseInt(params.num) : 25 - users.size() + 1
         def levels = UserLevel.values()
+        def rnd = new Random()
         newAmount.times {
             def user = new User()
             def fieldChoice = (rnd.nextBoolean()? 'userIdVk' : 'userIdFb' )
@@ -71,7 +72,7 @@ class DebugController {
         }
         users.each {
             loginService.loggedInUsers << [(it.id): it]
-            dummyList << ConversionsHelper.userToListMap(it)
+            dummyList << JSONConversionService.userToListMap(it)
         }
         dummyList.sort(true) {it.lastActive}
         def dummyMap = ['users' : dummyList.reverse()]

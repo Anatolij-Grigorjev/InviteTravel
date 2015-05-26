@@ -1,19 +1,12 @@
-package lt.mediapark.invitetravel.utils
+package lt.mediapark.invitetravel
 
+import grails.transaction.Transactional
 import groovy.transform.CompileStatic
-import lt.mediapark.invitetravel.ChatMessage
-import lt.mediapark.invitetravel.Payment
-import lt.mediapark.invitetravel.Place
-import lt.mediapark.invitetravel.User
 import lt.mediapark.invitetravel.constants.SubscriptionType
-import org.hibernate.Hibernate
 
-/**
- * Created by anatolij on 27/04/15.
- */
 @CompileStatic
-class ConversionsHelper {
-
+@Transactional
+class JSONConversionService {
 
     public Map userToMap(User user) {
         def map = [:]
@@ -58,7 +51,6 @@ class ConversionsHelper {
         placeMap
     }
 
-
     public Map messageToMap(ChatMessage message) {
         def map = [:]
         map['text'] = message?.text
@@ -71,5 +63,4 @@ class ConversionsHelper {
         //there is a possible false boolean in there, gotta avoid removing it
         map.findAll { (it.value != null) }
     }
-
 }

@@ -7,6 +7,12 @@ class User {
 
     public static final int MAX_ACTIVE_PICTURES = 4;
 
+    static mapping = {
+        payments lazy: false
+        residence lazy: false
+        wantToVisit lazy: false
+    }
+
     static constraints = {
         name nullable: false
         level nullable: false
@@ -29,6 +35,7 @@ class User {
             messagesFromMe: "from"
     ]
 
+    //doesn't do jack, shit or cunt as far as hibernate gives a fuck
     static fetchMode = [
             payments: 'eager',
             wantToVisit: 'eager',
@@ -72,10 +79,12 @@ class User {
     }
 
     boolean hasMessagesFrom(Long otherId) {
-        return this.messagesToMe?.any {it.from?.id == otherId && it.sent}
+        return this.messagesToMe?.any { it.from?.id == otherId && it.sent }
     }
 
     boolean activeSubMatchLevel() {
+        if (level == UserLevel.CANT_PAY)
+            return true
         payments.findAll { SubscriptionType.getById(it.key).subLevel.equals(level) }.any{ it.value.valid }
     }
 

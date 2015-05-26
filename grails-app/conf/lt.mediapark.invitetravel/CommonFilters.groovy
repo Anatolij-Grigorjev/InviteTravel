@@ -2,12 +2,13 @@ package lt.mediapark.invitetravel
 
 class CommonFilters {
 
-    def loginService
+    def usersService
 
     def filters = {
 
         printRequest(controller: '*', action: '*') {
             before = {
+                log.info("DESTINATION: ${request.requestURL.append(request.queryString?:'')}")
                 if (request.JSON) {
                     log.info("JSON REQUEST: ${request.JSON}")
                 } else {
@@ -15,14 +16,25 @@ class CommonFilters {
                 }
             }
         }
-        boostActivity(controller: '*', action: '*') {
+        boostActivity(controller: 'pictures|debug', action: 'index', invert: true) {
             before = {
+                if (actionName == 'login') return true
                 if (params.requestor) {
+                    log.info "Appearant activity from requestor ${params.requestor}"
                     Long id = Long.parseLong(params.requestor)
-                    def user = User.get(id)
-                    user.lastActive = new Date()
-                    user.save(flush: true)
-                    loginService.loggedInUsers[id].refresh()
+                    def user = usersService.get(id)
+                    if (user) {
+                        user.lastActive = new Date()
+                        user.save(flush: true)
+                        params['currUser'] = user
+                    } else {
+                        response.status = 403
+                        return false
+                    }
+                } else {
+                    log.info('Requestor not specified, denying request!')
+                    response.status = 403
+                    return false
                 }
             }
         }

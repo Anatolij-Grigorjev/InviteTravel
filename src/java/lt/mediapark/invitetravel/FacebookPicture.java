@@ -1,7 +1,6 @@
 package lt.mediapark.invitetravel;
 
 import com.restfb.Facebook;
-import com.restfb.JsonMapper;
 
 /**
  * Created by anatolij on 04/05/15.
