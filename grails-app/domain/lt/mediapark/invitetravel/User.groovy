@@ -42,8 +42,6 @@ class User {
             residence: 'eager'
     ]
 
-    static transients = ['listedIds']
-
     String name
     String description = ""
     Place residence
@@ -58,7 +56,7 @@ class User {
     Map<String, Payment> payments = [:]
     Date lastActive
     Boolean valid = true
-    Set listedIds = []
+
 
     boolean equals(o) {
         if (this.is(o)) return true

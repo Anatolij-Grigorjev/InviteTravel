@@ -82,7 +82,7 @@ class UsersController {
         //the JSON map has list parameters (is it fresh, what was the query, what places are we searching in user)
         currUser.attach()
         def usersList = usersService.getUsersList(currUser, amount, request.JSON).collect { User user ->
-            currUser.listedIds << user.id
+            UsersService.userListedIds[currUser.id] << user.id
 //            user.attach()
             JSONConversionService.userToListMap(user, currUser)
         }

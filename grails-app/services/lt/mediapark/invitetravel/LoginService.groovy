@@ -76,6 +76,7 @@ class LoginService {
         user = user.refresh()
         log.info "Logging in user ${user}"
         loggedInUsers << user.id
+        UsersService.userListedIds[user.id] = [] as Set
         result
     }
 

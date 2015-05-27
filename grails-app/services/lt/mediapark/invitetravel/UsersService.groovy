@@ -11,15 +11,16 @@ class UsersService {
 
     def loginService
 
+    public static Map<Long, Set<Long>> userListedIds = [:]
+
     def updateUser(User user, Map jsonMap) {
-        user.lock()
         if (jsonMap.description) user.description = jsonMap.description
         if (jsonMap.level) user.level = UserLevel.findForLevel(jsonMap.level)
-        if (jsonMap.residence) user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
+        if (jsonMap.residence) user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.place_id, description: jsonMap.residence.description])
         if (jsonMap.wantToVisit) {
             user.wantToVisit.clear()
             jsonMap.wantToVisit.each {
-                user.wantToVisit << Place.findOrSaveWhere([placeId: it.id, description: it.description])
+                user.wantToVisit << Place.findOrSaveWhere([placeId: it.place_id, description: it.description])
             }
         }
         //save before moving on to pictures
@@ -35,7 +36,7 @@ class UsersService {
 
     def getUsersList(User user, Integer amount, def jsonMap) {
         if (jsonMap?.fresh) {
-            user.listedIds?.clear()
+            userListedIds[user.id]?.clear()
         }
         Closure placesCriteria = {
             if (jsonMap?.query) {
@@ -47,7 +48,10 @@ class UsersService {
             }
         }
         String searchArea = jsonMap?.searchType == 0? "residence" : "wantToVisit";
-        if (!user.listedIds) {user.listedIds << user.id}
+        if (!userListedIds[user.id]) {
+            userListedIds[user.id] = [] as Set
+            userListedIds[user.id] << user.id
+        }
         def theList = User.createCriteria().list {
             "${searchArea}"(placesCriteria)
             order('lastActive', 'desc')
@@ -55,7 +59,7 @@ class UsersService {
             setMaxResults(amount)
             eq('valid', true)
             not {
-                'in'('id', user?.listedIds)
+                'in'('id', userListedIds[user.id])
             }
         }
         theList as Set
