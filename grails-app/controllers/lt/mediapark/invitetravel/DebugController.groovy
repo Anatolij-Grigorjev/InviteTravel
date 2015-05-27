@@ -34,7 +34,7 @@ class DebugController {
 
             user = user.save()
         }
-        loginService.loggedInUsers[user.id] = user
+        loginService.loggedInUsers << user.id
         def result = ['userId' : user.id]
         render result as JSON
     }
@@ -71,7 +71,7 @@ class DebugController {
             users << user
         }
         users.each {
-            loginService.loggedInUsers << [(it.id): it]
+            loginService.loggedInUsers << it.id
             dummyList << JSONConversionService.userToListMap(it)
         }
         dummyList.sort(true) {it.lastActive}

@@ -106,10 +106,8 @@ class ChatService {
         ChatMessage.withSession { session ->
             user.payments.values().findAll { it.valid }
                     .each { payment ->
-                log.info "traversing payment ${payment.dump()}"
                 user.messagesFromMe.findAll { !it.sent }
                         .each { msg ->
-                    log.info "traversing message ${msg.dump()}"
                     if (payment.subscriptionType.subLevel.canTalkTo(msg.to.level)) {
                         msg.sent = new Date()
                         msg.save()

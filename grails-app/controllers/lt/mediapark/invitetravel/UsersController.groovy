@@ -80,9 +80,10 @@ class UsersController {
         //this is more convenient than defining a whole new url mapping, since old
         //one fits just fine
         //the JSON map has list parameters (is it fresh, what was the query, what places are we searching in user)
+        currUser.attach()
         def usersList = usersService.getUsersList(currUser, amount, request.JSON).collect { User user ->
             currUser.listedIds << user.id
-//            user.refresh()
+//            user.attach()
             JSONConversionService.userToListMap(user, currUser)
         }
         def usersMap = ['users' : usersList]
@@ -92,9 +93,6 @@ class UsersController {
 
     def delete = {
         User currUser = params.currUser
-        if (!currUser) {
-            return render(status: 403)
-        }
         //disable user validity since nobody minds keeping them around
         currUser.valid = false
         currUser.save()

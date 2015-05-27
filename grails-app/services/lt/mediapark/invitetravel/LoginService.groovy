@@ -9,7 +9,7 @@ class LoginService {
 
     def placesService
 
-    Map<Long, User> loggedInUsers = Collections.synchronizedMap([:])
+    Set<Long> loggedInUsers = Collections.synchronizedSet([] as Set)
 
     def loginVK(def jsonMap) {
         //get VK stuff
@@ -73,15 +73,14 @@ class LoginService {
         user.valid = true
         user = user.save(flush: true)
         result.userId = user.id
-        user.refresh()
+        user = user.refresh()
         log.info "Logging in user ${user}"
-        loggedInUsers << [(user.id) : user]
+        loggedInUsers << user.id
         result
     }
 
     def logout(def userId) {
-        def user = loggedInUsers.remove(userId)
-
+        loggedInUsers.remove(userId)
     }
 
 }

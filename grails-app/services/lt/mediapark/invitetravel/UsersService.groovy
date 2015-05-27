@@ -12,7 +12,7 @@ class UsersService {
     def loginService
 
     def updateUser(User user, Map jsonMap) {
-//        user = user.lock()
+        user.lock()
         if (jsonMap.description) user.description = jsonMap.description
         if (jsonMap.level) user.level = UserLevel.findForLevel(jsonMap.level)
         if (jsonMap.residence) user.residence = Place.findOrSaveWhere([placeId: jsonMap.residence.id, description: jsonMap.residence.description])
@@ -23,7 +23,6 @@ class UsersService {
             }
         }
         //save before moving on to pictures
-//        user = user.save()
         if (jsonMap.pictures) {
             user.pictures.clear();
             user.pictures.addAll(jsonMap.pictures.collect {Picture.get(it.value)});
@@ -69,12 +68,13 @@ class UsersService {
     }
 
     def User get(Long userId, boolean canBeOffline = false) {
-        log.info("User id ${userId} was requested,${canBeOffline? " " : " NOT "}OK to search storage...")
-        def user = loginService.loggedInUsers[(userId)]
-        if (user) {
-            log.info("Fetched ${userId} from cache!")
+        log.info("User id ${userId} was requested,${canBeOffline? " " : " NOT "}OK to search logged in users...")
+        def user
+        if (loginService.loggedInUsers.contains(userId)) {
+            log.info("Fetching ${userId} from cache!")
+            user = User.get(userId)
         }
-        if (!user && canBeOffline) {
+        if (!userId && canBeOffline) {
             log.info("Fetching ${userId} from storage!")
             user = User.findById(userId)
         }

@@ -4,6 +4,8 @@ class CommonFilters {
 
     def usersService
 
+    private static final def lock = new Object()
+
     def filters = {
 
         printRequest(controller: '*', action: '*') {
@@ -16,20 +18,26 @@ class CommonFilters {
                 }
             }
         }
-        boostActivity(controller: 'pictures|debug', action: 'index', invert: true) {
+        boostActivity(controller: 'pictures|debug', action: 'index|list', invert: true) {
             before = {
                 if (actionName == 'login') return true
                 if (params.requestor) {
                     log.info "Appearant activity from requestor ${params.requestor}"
                     Long id = Long.parseLong(params.requestor)
-                    def user = usersService.get(id)
-                    if (user) {
-                        user.lastActive = new Date()
-                        user.save(flush: true)
-                        params['currUser'] = user
-                    } else {
-                        response.status = 403
-                        return false
+                    synchronized (lock) {
+                        def user = usersService.get(id)
+                        if (user) {
+                            User.withSession { session ->
+                                user.lastActive = new Date()
+                                user.save()
+                                session.flush()
+                            }
+
+                            params['currUser'] = user
+                        } else {
+                            response.status = 403
+                            return false
+                        }
                     }
                 } else {
                     log.info('Requestor not specified, denying request!')

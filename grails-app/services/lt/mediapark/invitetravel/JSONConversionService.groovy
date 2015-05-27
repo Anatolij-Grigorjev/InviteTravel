@@ -1,11 +1,10 @@
 package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
-import groovy.transform.CompileStatic
 import lt.mediapark.invitetravel.constants.SubscriptionType
+import org.springframework.transaction.annotation.Propagation
 
-@CompileStatic
-@Transactional
+@Transactional(propagation = Propagation.REQUIRED)
 class JSONConversionService {
 
     public Map userToMap(User user) {
