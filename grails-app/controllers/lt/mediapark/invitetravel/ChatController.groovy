@@ -18,7 +18,7 @@ class ChatController {
 
         Set<ChatMessage> correspondence = chatService.getCorrespondence(params.id1, params.id2, params.currUser.id, (params.time? new Date(Long.parseLong(params.time)):new Date()))
         def userMaps = correspondence.collect {
-            JSONConversionService.messageToMap(it)
+            JSONConversionService.chatMessageToMap(it)
         }
         def finMap = ['messages' : userMaps]
         render finMap as JSON
@@ -27,7 +27,7 @@ class ChatController {
 
     def send = {
         def message = chatService.sendMessage((User)params.currUser, params.id, request.JSON.text)
-        def map = JSONConversionService.messageToMap(message)
+        def map = JSONConversionService.chatMessageToMap(message)
         render map as JSON
     }
 
@@ -35,7 +35,7 @@ class ChatController {
     def list = {
         List<ChatMessage> listMessages = chatService.getChatsList(params.currUser.id)
         def map = listMessages.collect {
-            JSONConversionService.messageToMap(it)
+            JSONConversionService.chatMessageToMap(it)
         }
         def finMap = ['messages' : map]
         render finMap as JSON

@@ -1,5 +1,7 @@
 package lt.mediapark.invitetravel
 
+import lt.mediapark.invitetravel.utils.ErrorMessage
+
 class ChatMessage {
 
     static constraints = {
@@ -10,6 +12,8 @@ class ChatMessage {
         created nullable: false
     }
 
+    static transients = ['error']
+
     User from
     User to
     Boolean read = false
@@ -17,6 +21,7 @@ class ChatMessage {
     Date created = new Date()
     Date sent
     Date received
+    ErrorMessage error
 
     boolean equals(o) {
         if (this.is(o)) return true

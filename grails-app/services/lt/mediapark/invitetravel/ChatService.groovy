@@ -2,6 +2,9 @@ package lt.mediapark.invitetravel
 
 import com.relayrides.pushy.apns.util.ApnsPayloadBuilder
 import grails.transaction.Transactional
+import lt.mediapark.invitetravel.constants.ErrorType
+import lt.mediapark.invitetravel.constants.UserLevel
+import lt.mediapark.invitetravel.utils.ErrorMessage
 import org.springframework.transaction.annotation.Isolation
 import org.springframework.transaction.annotation.Propagation
 
@@ -84,9 +87,20 @@ class ChatService {
         message = message.refresh()
         fromUser = fromUser.refresh()
         toUser = toUser.refresh()
+        //validate that message can be sent and error otherwise
+        boolean usersHaveBeenTalking = (toUser.hasMessagesFrom(fromUser.id) || fromUser.hasMessagesFrom(toUser.id))
+        boolean levelsGood = fromUser.level.canTalkTo(toUser.level)
+        boolean subPayGood = fromUser.activeSubMatchLevel()
+        if (!usersHaveBeenTalking) {
+            if (!levelsGood) {
+                message.error = new ErrorMessage(type: ErrorType.BAD_LEVEL, solutions: [UserLevel.talkMatrix[(toUser.level)]])
+            }
+            if (!subPayGood) {
+                message.error = new ErrorMessage(type: ErrorType.BAD_PAY)
+            }
+        }
         //only send message to receiving person if they have the level or if they chatted before
-        if ((toUser.hasMessagesFrom(fromUser.id) || fromUser.hasMessagesFrom(toUser.id))
-                || (fromUser.level.canTalkTo(toUser.level) && fromUser.activeSubMatchLevel())) {
+        if (usersHaveBeenTalking || levelsGood && subPayGood) {
             message.sent = new Date()
             message = message.save()
             if (toUser.deviceToken) {

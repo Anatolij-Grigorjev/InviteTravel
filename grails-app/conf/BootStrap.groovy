@@ -85,7 +85,7 @@ class BootStrap {
                 def result;
                 if (paramsMap) {
                     def params = paramsMap.collect { it ->
-                        Parameter.with(it.key, it.value)
+                        Parameter.with(it.key?.toString(), it.value)
                     }
                     result = fbClient.fetchObject(newPath, resultType, params.toArray(new Parameter[0]))
                 } else {
@@ -185,6 +185,6 @@ class BootStrap {
 
 
     def destroy = {
-        if (pushManager.isStarted()) pushManager.shutDown()
+        if (pushManager?.isStarted()) pushManager.shutDown()
     }
 }

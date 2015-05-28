@@ -7,7 +7,7 @@ enum UserLevel {
 
     CAN_PAY_FOR_TWO(2), CAN_PAY_FOR_ONE(1), CANT_PAY(0);
 
-    private static Map<UserLevel, List<UserLevel>> talkMatrix = [
+    static Map<UserLevel, List<UserLevel>> talkMatrix = [
             (CANT_PAY): [CAN_PAY_FOR_TWO],
             (CAN_PAY_FOR_ONE): [CAN_PAY_FOR_ONE, CAN_PAY_FOR_TWO],
             (CAN_PAY_FOR_TWO): values() as List
