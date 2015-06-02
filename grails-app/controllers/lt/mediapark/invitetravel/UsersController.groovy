@@ -16,6 +16,7 @@ class UsersController {
 
     def usersService
     def loginService
+    def chatService
     def JSONConversionService
 
     def index = {
@@ -30,7 +31,13 @@ class UsersController {
 
     def update = {
         try {
-            def user = usersService.updateUser((User)params.currUser, request.JSON)
+            def user = (User)params.currUser
+            def prevLevel = user.level
+            user = usersService.updateUser(user, (Map)request.JSON)
+            //levels not equal, try resending messages
+            if (user.level != prevLevel) {
+                user = chatService.refreshUserMessages(user)
+            }
             def userMap = JSONConversionService.userToMap(user)
             render userMap as JSON
         } catch (Exception e) {

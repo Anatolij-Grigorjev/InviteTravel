@@ -30,7 +30,6 @@ class UsersService {
         }
 
         user = user.save(flush: true)
-        log.info("User these days: ${user.dump()}")
         user
     }
 
@@ -62,7 +61,7 @@ class UsersService {
                 'in'('id', userListedIds[user.id])
             }
         }
-        theList as Set
+        theList.findAll { loginService.loggedInUsers.contains(it.id) } as Set
     }
 
     def boolean userReady(def userId) {

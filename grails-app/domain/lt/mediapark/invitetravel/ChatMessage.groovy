@@ -1,7 +1,5 @@
 package lt.mediapark.invitetravel
 
-import lt.mediapark.invitetravel.utils.ErrorMessage
-
 class ChatMessage {
 
     static constraints = {
@@ -12,7 +10,9 @@ class ChatMessage {
         created nullable: false
     }
 
-    static transients = ['error']
+    static hasOne = [
+        'error' : ErrorMessage
+    ]
 
     User from
     User to

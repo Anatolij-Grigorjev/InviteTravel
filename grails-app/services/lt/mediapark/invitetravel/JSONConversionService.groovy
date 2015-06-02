@@ -2,7 +2,6 @@ package lt.mediapark.invitetravel
 
 import grails.transaction.Transactional
 import lt.mediapark.invitetravel.constants.SubscriptionType
-import lt.mediapark.invitetravel.utils.ErrorMessage
 import org.springframework.transaction.annotation.Propagation
 
 @Transactional(propagation = Propagation.REQUIRED)
@@ -60,17 +59,15 @@ class JSONConversionService {
         map['created'] = message?.created?.time
         map['read'] = message?.read
         map['received'] = message?.received?.time
-        map['error'] = errorMessageToMap(message?.error)
+        if (message?.error) map['error'] = errorMessageToMap(message.error)
         //there is a possible false boolean in there, gotta avoid removing it
         map.findAll { (it.value != null) }
     }
 
     Map errorMessageToMap(ErrorMessage message) {
         def map = [:]
-        map['type'] = message.type.toString()
-        if (message.solutions) {
-            map['solutions'] = message.solutions.collect {it.rank}
-        }
-        ['error' : map]
+        map['type'] = message?.type?.toString()
+        if (message.solutions) map['solutions'] = Eval.me(message.solutions)
+        map
     }
 }
